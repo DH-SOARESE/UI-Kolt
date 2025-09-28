@@ -389,156 +389,138 @@ function Window:AddTab(name)
         return Toggle
     end
     
-    -- Add slider method
-    function Tab:AddSlider(id, config)
-        local Slider = {}
-        Slider.ID = id
-        Slider.Text = config.Text or "Slider"
-        Slider.Default = config.Default or 0
-        Slider.Min = config.Min or 0
-        Slider.Max = config.Max or 100
-        Slider.HideMax = config.HideMax or false
-        Slider.Compact = config.Compact or false
-        Slider.Suffix = config.Suffix or ""
-        Slider.Callback = config.Callback or function() end
-        Slider.Value = Slider.Default
+  -- Add slider method
+function Tab:AddSlider(id, config)
+    local Slider = {}
+    Slider.ID = id
+    Slider.Text = config.Text or "Slider"
+    Slider.Default = config.Default or 0
+    Slider.Min = config.Min or 0
+    Slider.Max = config.Max or 100
+    Slider.HideMax = config.HideMax or false
+    Slider.Compact = config.Compact or false
+    Slider.Suffix = config.Suffix or ""
+    Slider.Callback = config.Callback or function() end
+    Slider.Value = Slider.Default
+    
+    -- Frame base
+    Slider.Frame = Instance.new("Frame")
+    Slider.Frame.Name = id
+    Slider.Frame.BorderSizePixel = 0
+    Slider.Frame.BackgroundTransparency = 1
+    Slider.Frame.Size = UDim2.new(1, 0, 0, Slider.Compact and 34 or 52)
+    Slider.Frame.Parent = Tab.Content
+    
+    -- Fundo
+    Slider.Background = Instance.new("Frame")
+    Slider.Background.BorderSizePixel = 0
+    Slider.Background.BackgroundColor3 = theme.Outline
+    Slider.Background.Size = UDim2.new(1, -12, 0, 26)
+    Slider.Background.Position = UDim2.new(0, 6, 0, Slider.Compact and 4 or 22)
+    Slider.Background.Parent = Slider.Frame
+    
+    createCorner(Slider.Background, 5)
+    createStroke(Slider.Background, theme.Accent)
+    
+    -- Barra de progresso
+    Slider.Progress = Instance.new("Frame")
+    Slider.Progress.Name = "Progress"
+    Slider.Progress.BorderSizePixel = 0
+    Slider.Progress.BackgroundColor3 = theme.InnerBackground
+    Slider.Progress.Size = UDim2.new(1, -8, 0, 18)
+    Slider.Progress.Position = UDim2.new(0, 4, 0, 4)
+    Slider.Progress.Parent = Slider.Background
+    
+    createCorner(Slider.Progress, 5)
+    createStroke(Slider.Progress, theme.Outline)
+    
+    -- Parte preenchida
+    Slider.ProgressBar = Instance.new("Frame")
+    Slider.ProgressBar.Name = "ProgressBar"
+    Slider.ProgressBar.BorderSizePixel = 0
+    Slider.ProgressBar.BackgroundColor3 = theme.SliderProgress
+    Slider.ProgressBar.Size = UDim2.new(0, 10, 0, 18)
+    Slider.ProgressBar.Parent = Slider.Progress
+    
+    createCorner(Slider.ProgressBar, 5)
+    
+    -- Label de título
+    Slider.NameLabel = Instance.new("TextLabel")
+    Slider.NameLabel.TextWrapped = true
+    Slider.NameLabel.BorderSizePixel = 0
+    Slider.NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    Slider.NameLabel.TextScaled = true
+    Slider.NameLabel.BackgroundTransparency = 1
+    Slider.NameLabel.Font = Enum.Font.SourceSans
+    Slider.NameLabel.TextColor3 = theme.Text
+    Slider.NameLabel.Size = UDim2.new(1, -12, 0, 14)
+    Slider.NameLabel.Text = Slider.Text
+    Slider.NameLabel.Position = UDim2.new(0, 6, 0, 4)
+    Slider.NameLabel.Visible = not Slider.Compact
+    Slider.NameLabel.Parent = Slider.Frame
+    
+    -- Valor centralizado
+    Slider.CenterLabel = Instance.new("TextLabel")
+    Slider.CenterLabel.TextWrapped = true
+    Slider.CenterLabel.BorderSizePixel = 0
+    Slider.CenterLabel.TextScaled = true
+    Slider.CenterLabel.BackgroundTransparency = 1
+    Slider.CenterLabel.Font = Enum.Font.SourceSansBold
+    Slider.CenterLabel.TextColor3 = theme.DarkText
+    Slider.CenterLabel.Size = UDim2.new(1, 0, 1, 0)
+    Slider.CenterLabel.Position = UDim2.new(0, 0, 0, 0)
+    Slider.CenterLabel.Parent = Slider.Progress
+    
+    -- Função de atualização
+    local function updateSlider(value)
+        Slider.Value = math.clamp(value, Slider.Min, Slider.Max)
+        local ratio = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min)
+        Slider.ProgressBar.Size = UDim2.new(ratio, 0, 0, 18)
         
-        -- Create slider frame
-        Slider.Frame = Instance.new("Frame")
-        Slider.Frame.Name = id
-        Slider.Frame.BorderSizePixel = 0
-        Slider.Frame.BackgroundTransparency = 1
-        Slider.Frame.Size = UDim2.new(1, 0, 0, Slider.Compact and 34 or 52)
-        Slider.Frame.Parent = Tab.Content
-        
-        -- Slider background
-        Slider.Background = Instance.new("Frame")
-        Slider.Background.BorderSizePixel = 0
-        Slider.Background.BackgroundColor3 = theme.Outline
-        Slider.Background.Size = UDim2.new(1, -12, 0, 26)
-        Slider.Background.Position = UDim2.new(0, 6, 0, Slider.Compact and 4 or 22)
-        Slider.Background.Parent = Slider.Frame
-        
-        createCorner(Slider.Background, 5)
-        createStroke(Slider.Background, theme.Accent)
-        
-        -- Progress background
-        Slider.Progress = Instance.new("Frame")
-        Slider.Progress.Name = "Progress"
-        Slider.Progress.BorderSizePixel = 0
-        Slider.Progress.BackgroundColor3 = theme.InnerBackground
-        Slider.Progress.Size = UDim2.new(1, -8, 0, 18)
-        Slider.Progress.Position = UDim2.new(0, 4, 0, 4)
-        Slider.Progress.Parent = Slider.Background
-        
-        createCorner(Slider.Progress, 5)
-        createStroke(Slider.Progress, theme.Outline)
-        
-        -- Progress bar
-        Slider.ProgressBar = Instance.new("Frame")
-        Slider.ProgressBar.Name = "ProgressBar"
-        Slider.ProgressBar.BorderSizePixel = 0
-        Slider.ProgressBar.BackgroundColor3 = theme.SliderProgress
-        Slider.ProgressBar.Size = UDim2.new(0, 10, 0, 18)
-        Slider.ProgressBar.Parent = Slider.Progress
-        
-        createCorner(Slider.ProgressBar, 5)
-        
-        -- Labels
-        if not Slider.Compact then
-            Slider.NameLabel = Instance.new("TextLabel")
-            Slider.NameLabel.TextWrapped = true
-            Slider.NameLabel.BorderSizePixel = 0
-            Slider.NameLabel.TextXAlignment = Enum.TextXAlignment.Left
-            Slider.NameLabel.TextScaled = true
-            Slider.NameLabel.BackgroundTransparency = 1
-            Slider.NameLabel.Font = Enum.Font.SourceSans
-            Slider.NameLabel.TextColor3 = theme.Text
-            Slider.NameLabel.Size = UDim2.new(1, -12, 0, 14)
-            Slider.NameLabel.Text = Slider.Text
-            Slider.NameLabel.Position = UDim2.new(0, 6, 0, 4)
-            Slider.NameLabel.Parent = Slider.Frame
-            
-            Slider.ValueLabel = Instance.new("TextLabel")
-            Slider.ValueLabel.TextWrapped = true
-            Slider.ValueLabel.BorderSizePixel = 0
-            Slider.ValueLabel.TextScaled = true
-            Slider.ValueLabel.BackgroundTransparency = 1
-            Slider.ValueLabel.Font = Enum.Font.SourceSans
-            Slider.ValueLabel.TextColor3 = theme.DarkText
-            Slider.ValueLabel.Size = UDim2.new(1, -12, 0, 14)
-            Slider.ValueLabel.Position = UDim2.new(0, 6, 0, 32)
-            Slider.ValueLabel.Parent = Slider.Frame
-        else
-            Slider.CompactLabel = Instance.new("TextLabel")
-            Slider.CompactLabel.TextWrapped = true
-            Slider.CompactLabel.BorderSizePixel = 0
-            Slider.CompactLabel.TextScaled = true
-            Slider.CompactLabel.BackgroundTransparency = 1
-            Slider.CompactLabel.Font = Enum.Font.SourceSans
-            Slider.CompactLabel.TextColor3 = theme.Text
-            Slider.CompactLabel.Size = UDim2.new(1, -12, 0, 14)
-            Slider.CompactLabel.Position = UDim2.new(0, 6, 0, 34)
-            Slider.CompactLabel.Parent = Slider.Frame
+        local valueText = tostring(Slider.Value) .. Slider.Suffix
+        if not Slider.HideMax then
+            valueText = valueText .. " / " .. Slider.Max .. Slider.Suffix
         end
+        Slider.CenterLabel.Text = valueText
         
-        -- Update slider function
-        local function updateSlider(value)
-            Slider.Value = math.clamp(value, Slider.Min, Slider.Max)
-            
-            local ratio = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min)
-            Slider.ProgressBar.Size = UDim2.new(ratio, 0, 0, 18)
-            
-            local valueText = tostring(Slider.Value) .. Slider.Suffix
-            if not Slider.HideMax then
-                valueText = valueText .. " / " .. Slider.Max .. Slider.Suffix
-            end
-            
-            if Slider.Compact then
-                Slider.CompactLabel.Text = Slider.Text .. ": " .. valueText
-            else
-                Slider.ValueLabel.Text = valueText
-            end
-            
-            Slider.Callback(Slider.Value)
-        end
-        
-        -- Slider interaction
-        local dragging = false
-
-        local function getPercent(x)
-            local barPos = Slider.Progress.AbsolutePosition.X
-            local barSize = Slider.Progress.AbsoluteSize.X
-            return math.clamp((x - barPos) / barSize, 0, 1)
-        end
-
-        Slider.Frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                local pos = UserInputService:GetMouseLocation()
-                updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * getPercent(pos.X)))
-            end
-        end)
-
-        Slider.Frame.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = false
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                local pos = UserInputService:GetMouseLocation()
-                updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * getPercent(pos.X)))
-            end
-        end)
-        
-        -- Initialize
-        updateSlider(Slider.Value)
-        
-        Tab.Elements[id] = Slider
-        return Slider
+        Slider.Callback(Slider.Value)
     end
+    
+    -- Interação
+    local dragging = false
+    local function getPercent(x)
+        local barPos = Slider.Progress.AbsolutePosition.X
+        local barSize = Slider.Progress.AbsoluteSize.X
+        return math.clamp((x - barPos) / barSize, 0, 1)
+    end
+    
+    Slider.Frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            local pos = UserInputService:GetMouseLocation()
+            updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * getPercent(pos.X)))
+        end
+    end)
+    
+    Slider.Frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local pos = UserInputService:GetMouseLocation()
+            updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * getPercent(pos.X)))
+        end
+    end)
+    
+    -- Inicialização
+    updateSlider(Slider.Value)
+    
+    Tab.Elements[id] = Slider
+    return Slider
+end
     
     self.Tabs[name] = Tab
     
