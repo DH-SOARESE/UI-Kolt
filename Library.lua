@@ -335,7 +335,7 @@ function Window:AddTab(name)
         Toggle.Button.AutoButtonColor = false
         Toggle.Button.BackgroundColor3 = theme.Outline
         Toggle.Button.Size = UDim2.new(0, 22, 0, 22)
-        Toggle.Button.Position = UDim2.new(0, 6, 0, 6)
+        Toggle.Button.Position = UDim2.new(0, 4, 0, 6)
         Toggle.Button.Text = ""
         Toggle.Button.Parent = Toggle.Frame
         
@@ -349,7 +349,7 @@ function Window:AddTab(name)
         Toggle.Indicator.BorderSizePixel = 0
         Toggle.Indicator.BackgroundColor3 = theme.ToggleOn
         Toggle.Indicator.Size = UDim2.new(0, 14, 0, 14)
-        Toggle.Indicator.Position = UDim2.new(0, 4, 0, 4)
+        Toggle.Indicator.Position = UDim2.new(0, 2, 0, 4)
         Toggle.Indicator.Parent = Toggle.Button
         
         createCorner(Toggle.Indicator, 3)
@@ -503,35 +503,35 @@ function Window:AddTab(name)
             Slider.Callback(Slider.Value)
         end
         
-        -- Slider interaction
-        local dragging = false
-        
-        Slider.Progress.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                local mouse = UserInputService:GetMouseLocation().X
-                local barAbsPos = Slider.Progress.AbsolutePosition.X
-                local barAbsSize = Slider.Progress.AbsoluteSize.X
-                local percent = math.clamp((mouse - barAbsPos) / barAbsSize, 0, 1)
-                updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * percent))
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local mouse = UserInputService:GetMouseLocation().X
-                local barAbsPos = Slider.Progress.AbsolutePosition.X
-                local barAbsSize = Slider.Progress.AbsoluteSize.X
-                local percent = math.clamp((mouse - barAbsPos) / barAbsSize, 0, 1)
-                updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * percent))
-            end
-        end)
+-- Slider interaction
+local dragging = false
+
+local function getPercent(x)
+    local barPos = Slider.Progress.AbsolutePosition.X
+    local barSize = Slider.Progress.AbsoluteSize.X
+    return math.clamp((x - barPos) / barSize, 0, 1)
+end
+
+Slider.Frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        local mouseX = UserInputService:GetMouseLocation().X
+        updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * getPercent(mouseX)))
+    end
+end)
+
+Slider.Frame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local mouseX = UserInputService:GetMouseLocation().X
+        updateSlider(math.floor(Slider.Min + (Slider.Max - Slider.Min) * getPercent(mouseX)))
+    end
+end)
         
         -- Initialize
         updateSlider(Slider.Value)
