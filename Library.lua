@@ -45,6 +45,7 @@ local function createStroke(parent, color, thickness)
     local stroke = Instance.new("UIStroke")
     stroke.Color = color or theme.Outline
     stroke.Thickness = thickness or 1
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- 
     stroke.Parent = parent
     return stroke
 end
@@ -98,8 +99,8 @@ function Window:CreateWindow()
     -- Calculate menu size based on screen size
     local menuSize, menuPosition
     if isMobileScreen then
-        menuSize = UDim2.new(0.95, 0, 0.8, 0)
-        menuPosition = self.Center and UDim2.new(0.025, 0, 0.1, 0) or UDim2.new(0, 10, 0, 10)
+    menuSize = UDim2.new(0.9, 0, 0.85, 0) -- 90% largura, 85% altura
+    menuPosition = UDim2.new(0.05, 0, 0.075, 0) -- centralizado
     else
         menuSize = UDim2.new(0, 536, 0, 296)
         menuPosition = self.Center and UDim2.new(0.5, -268, 0.5, -148) or UDim2.new(0, 100, 0, 100)
