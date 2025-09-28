@@ -1,5 +1,5 @@
---Kolt UI LIBRARY 
-
+-- UI Library for Roblox
+-- UI Kolt v1
 local Library = {}
 local Windows = {}
 
@@ -235,6 +235,7 @@ function Window:CreateWindow()
         self.LockButton.Font = Enum.Font.SourceSansBold
         self.LockButton.TextSize = 14
         self.LockButton.Parent = self.ScreenGui
+        self.ToggleUIButton.ZIndex = 999 
         createCorner(self.LockButton, 4)
         createStroke(self.LockButton, theme.Accent)
         
@@ -256,6 +257,7 @@ function Window:CreateWindow()
         self.ToggleUIButton.Parent = self.ScreenGui
         createCorner(self.ToggleUIButton, 4)
         createStroke(self.ToggleUIButton, theme.Accent)
+        self.ToggleUIButton.ZIndex = 99
         
         self.ToggleUIButton.MouseButton1Click:Connect(function()
             self.MainFrame.Visible = not self.MainFrame.Visible
