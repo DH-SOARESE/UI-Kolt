@@ -1,5 +1,4 @@
--- UI Library for Roblox
--- Load with: local Library = loadstring(game:HttpGet("your-url-here"))()()
+--Kolt UI LIBRARY 
 
 local Library = {}
 local Windows = {}
@@ -81,6 +80,7 @@ function Window:new(config)
     self.MenuFadeTime = config.MenuFadeTime or 0.2
     self.Tabs = {}
     self.CurrentTab = nil
+    self.isLocked = false
     
     self:CreateWindow()
     return self
@@ -221,23 +221,69 @@ function Window:CreateWindow()
     self.TabsLayout.Changed:Connect(function()
         self.TabsScroll.CanvasSize = UDim2.new(0, 0, 0, self.TabsLayout.AbsoluteContentSize.Y + 8)
     end)
+    
+    -- Add mobile buttons or PC hotkey
+    if isMobile then
+        -- Lock/Unlock button
+        self.LockButton = Instance.new("TextButton")
+        self.LockButton.Name = "LockButton"
+        self.LockButton.Text = self.isLocked and "Unlock" or "Lock"
+        self.LockButton.Size = UDim2.new(0, 60, 0, 30)
+        self.LockButton.Position = UDim2.new(0, 10, 0.4, 0)
+        self.LockButton.BackgroundColor3 = theme.Background
+        self.LockButton.TextColor3 = theme.Text
+        self.LockButton.Font = Enum.Font.SourceSansBold
+        self.LockButton.TextSize = 14
+        self.LockButton.Parent = self.ScreenGui
+        createCorner(self.LockButton, 4)
+        createStroke(self.LockButton, theme.Accent)
+        
+        self.LockButton.MouseButton1Click:Connect(function()
+            self.isLocked = not self.isLocked
+            self.LockButton.Text = self.isLocked and "Unlock" or "Lock"
+        end)
+        
+        -- Toggle UI button
+        self.ToggleUIButton = Instance.new("TextButton")
+        self.ToggleUIButton.Name = "ToggleUIButton"
+        self.ToggleUIButton.Text = "Toggle UI"
+        self.ToggleUIButton.Size = UDim2.new(0, 60, 0, 30)
+        self.ToggleUIButton.Position = UDim2.new(0, 10, 0.5, 0)
+        self.ToggleUIButton.BackgroundColor3 = theme.Background
+        self.ToggleUIButton.TextColor3 = theme.Text
+        self.ToggleUIButton.Font = Enum.Font.SourceSansBold
+        self.ToggleUIButton.TextSize = 14
+        self.ToggleUIButton.Parent = self.ScreenGui
+        createCorner(self.ToggleUIButton, 4)
+        createStroke(self.ToggleUIButton, theme.Accent)
+        
+        self.ToggleUIButton.MouseButton1Click:Connect(function()
+            self.MainFrame.Visible = not self.MainFrame.Visible
+        end)
+    else
+        -- PC F3 toggle
+        UserInputService.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F3 then
+                self.MainFrame.Visible = not self.MainFrame.Visible
+            end
+        end)
+    end
 end
 
 function Window:SetupDrag()
     local isDragging = false
     local dragStart = nil
     local startPos = nil
-    local isLocked = false
     
     local function updateInput(input)
-        if not isDragging or isLocked then return end
+        if not isDragging or self.isLocked then return end
         
         local delta = input.Position - dragStart
         self.MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
     
     self.MainFrame.InputBegan:Connect(function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not isLocked then
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not self.isLocked then
             isDragging = true
             dragStart = input.Position
             startPos = self.MainFrame.Position
