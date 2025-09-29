@@ -1,5 +1,5 @@
 -- UI Library for Roblox
--- Kolt UI Library 1.0
+-- Kolt UI Library 1.1
 
 local Library = {}
 local Windows = {}
@@ -13,6 +13,7 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 -- Configuration options
 Library.IsMobile = nil  -- Boolean to override mobile detection
@@ -40,20 +41,20 @@ local isMobileScreen = screenSize.X < 768 or isMobile
 
 -- Define theme colors
 local theme = {
-    Background = Color3.fromRGB(30, 30, 30),
-    InnerBackground = Color3.fromRGB(35, 35, 35),
-    Outline = Color3.fromRGB(50, 50, 50),
-    Accent = Color3.fromRGB(130, 55, 236),
-    Text = Color3.fromRGB(255, 255, 255),
-    DarkText = Color3.fromRGB(170, 170, 170),
-    ToggleOn = Color3.fromRGB(130, 55, 236),
-    SliderProgress = Color3.fromRGB(130, 55, 236)
+    Background = Color3.fromRGB(28, 28, 28),
+    InnerBackground = Color3.fromRGB(32, 32, 32),
+    Outline = Color3.fromRGB(45, 45, 45),
+    Accent = Color3.fromRGB(140, 60, 245),
+    Text = Color3.fromRGB(245, 245, 245),
+    DarkText = Color3.fromRGB(160, 160, 160),
+    ToggleOn = Color3.fromRGB(140, 60, 245),
+    SliderProgress = Color3.fromRGB(140, 60, 245)
 }
 
 -- Utility Functions
 local function createCorner(parent, radius)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or 6)
+    corner.CornerRadius = UDim.new(0, radius or 8)
     corner.Parent = parent
     return corner
 end
@@ -80,7 +81,7 @@ end
 local function createListLayout(parent, direction, padding, sortOrder)
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = direction or Enum.FillDirection.Vertical
-    layout.Padding = UDim.new(0, padding or 4)
+    layout.Padding = UDim.new(0, padding or 6)
     layout.SortOrder = sortOrder or Enum.SortOrder.LayoutOrder
     layout.Parent = parent
     return layout
@@ -95,7 +96,7 @@ function Window:new(config)
     
     self.Title = config.Title or "Window"
     self.Center = config.Center ~= false
-    self.MenuFadeTime = config.MenuFadeTime or 0.2
+    self.MenuFadeTime = config.MenuFadeTime or 0.15
     self.Tabs = {}
     self.CurrentTab = nil
     self.isLocked = false
@@ -112,8 +113,8 @@ function Window:CreateCustomCursor()
     self.CustomCursor = Instance.new("ImageLabel")
     self.CustomCursor.Name = "CustomCursor"
     self.CustomCursor.Image = "rbxassetid://12230889708" -- sua seta
-    self.CustomCursor.Size = UDim2.new(0, 32, 0, 32)
-    self.CustomCursor.AnchorPoint = Vector2.new(0.5, 0.5) -- centro do cursor
+    self.CustomCursor.Size = UDim2.new(0, 24, 0, 24)
+    self.CustomCursor.AnchorPoint = Vector2.new(0, 0)
     self.CustomCursor.BackgroundTransparency = 1
     self.CustomCursor.ZIndex = 1000
     self.CustomCursor.Parent = self.ScreenGui
@@ -121,6 +122,8 @@ function Window:CreateCustomCursor()
     UserInputService.MouseIconEnabled = false
 
     local lastPosition = UserInputService:GetMouseLocation()
+    local targetRotation = 0
+    local currentRotation = 0
 
     local function updateCursor()
         local mousePos = UserInputService:GetMouseLocation()
@@ -128,10 +131,13 @@ function Window:CreateCustomCursor()
 
         -- Calcula o ângulo da seta baseado no movimento
         local delta = mousePos - lastPosition
-        if delta.Magnitude > 0 then
-            local angle = math.deg(math.atan2(delta.Y, delta.X))
-            self.CustomCursor.Rotation = angle
+        if delta.Magnitude > 0.5 then
+            targetRotation = math.deg(math.atan2(delta.Y, delta.X))
         end
+
+        -- Suaviza a rotação com lerp
+        currentRotation = currentRotation + (targetRotation - currentRotation) * 0.3
+        self.CustomCursor.Rotation = currentRotation
 
         lastPosition = mousePos
     end
@@ -188,7 +194,7 @@ function Window:CreateWindow()
     uiScale.Scale = dpiScale
     uiScale.Parent = self.MainFrame
     
-    createCorner(self.MainFrame, 6)
+    createCorner(self.MainFrame, 8)
     createStroke(self.MainFrame, theme.Outline, 1)
     
     -- Drag functionality
@@ -199,7 +205,7 @@ function Window:CreateWindow()
     self.TitleLabel.Name = "Title"
     self.TitleLabel.TextWrapped = true
     self.TitleLabel.BorderSizePixel = 0
-    self.TitleLabel.TextSize = 15
+    self.TitleLabel.TextSize = 16
     self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.TitleLabel.TextScaled = true
     self.TitleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -232,7 +238,7 @@ function Window:CreateWindow()
         self.InnerBackground.Position = UDim2.new(0, 4, 0, 28)
     end
     
-    createCorner(self.InnerBackground, 4)
+    createCorner(self.InnerBackground, 6)
     createStroke(self.InnerBackground, theme.Outline)
     
     -- Tabs Frame (Sidebar)
@@ -249,7 +255,7 @@ function Window:CreateWindow()
         self.TabsFrame.Position = UDim2.new(0, 2, 0, 2)
     end
     
-    createCorner(self.TabsFrame, 6)
+    createCorner(self.TabsFrame, 8)
     createStroke(self.TabsFrame, theme.Outline)
     
     -- Tabs Scroll
@@ -265,10 +271,10 @@ function Window:CreateWindow()
     self.TabsScroll.ScrollBarImageColor3 = theme.Accent
     self.TabsScroll.Parent = self.TabsFrame
     
-    createCorner(self.TabsScroll, 4)
+    createCorner(self.TabsScroll, 6)
     createPadding(self.TabsScroll, 4, 4, 4, 4)
     
-    self.TabsLayout = createListLayout(self.TabsScroll, Enum.FillDirection.Vertical, 4)
+    self.TabsLayout = createListLayout(self.TabsScroll, Enum.FillDirection.Vertical, 6)
     
     -- Content Frame
     self.ContentFrame = Instance.new("Frame")
@@ -285,7 +291,7 @@ function Window:CreateWindow()
         self.ContentFrame.Position = UDim2.new(0, 150, 0, 2)
     end
     
-    createCorner(self.ContentFrame, 4)
+    createCorner(self.ContentFrame, 6)
     createStroke(self.ContentFrame, theme.Outline)
     
     -- Update canvas size
@@ -307,7 +313,7 @@ function Window:CreateWindow()
         self.LockButton.TextSize = 14
         self.LockButton.Parent = self.ScreenGui
         self.LockButton.ZIndex = 99
-        createCorner(self.LockButton, 4)
+        createCorner(self.LockButton, 6)
         createStroke(self.LockButton, theme.Accent)
         
         self.LockButton.MouseButton1Click:Connect(function()
@@ -328,7 +334,7 @@ function Window:CreateWindow()
         self.ToggleUIButton.Font = Enum.Font.SourceSansBold
         self.ToggleUIButton.TextSize = 14
         self.ToggleUIButton.Parent = self.ScreenGui
-        createCorner(self.ToggleUIButton, 4)
+        createCorner(self.ToggleUIButton, 6)
         createStroke(self.ToggleUIButton, theme.Accent)
         self.ToggleUIButton.ZIndex = 99
         
@@ -415,11 +421,11 @@ function Window:AddTab(name)
     Tab.Button.TextColor3 = theme.Text
     Tab.Button.BackgroundColor3 = theme.InnerBackground
     Tab.Button.Font = Enum.Font.SourceSansSemibold
-    Tab.Button.Size = UDim2.new(1, 0, 0, 25)
+    Tab.Button.Size = UDim2.new(1, 0, 0, 28)
     Tab.Button.Text = name
     Tab.Button.Parent = self.TabsScroll
     
-    createCorner(Tab.Button, 4)
+    createCorner(Tab.Button, 6)
     Tab.ButtonStroke = createStroke(Tab.Button, theme.Accent)
     Tab.ButtonStroke.Transparency = 0.5
     
@@ -437,7 +443,7 @@ function Window:AddTab(name)
     Tab.Content.Visible = false
     Tab.Content.Parent = self.ContentFrame
     
-    createCorner(Tab.Content, 4)
+    createCorner(Tab.Content, 6)
     createPadding(Tab.Content, 8, 8, 8, 8)
     
     Tab.ContentLayout = createListLayout(Tab.Content, Enum.FillDirection.Vertical, 8)
@@ -480,7 +486,7 @@ function Tab:AddToggle(id, config)
     Toggle.Button.Text = ""
     Toggle.Button.Parent = Toggle.Frame
 
-    createCorner(Toggle.Button, 5)
+    createCorner(Toggle.Button, 6)
     createStroke(Toggle.Button, theme.Accent)
 
     -- Toggle indicator
@@ -493,7 +499,7 @@ function Tab:AddToggle(id, config)
     Toggle.Indicator.Position = UDim2.new(0, 4, 0, 4)
     Toggle.Indicator.Parent = Toggle.Button
 
-    createCorner(Toggle.Indicator, 3)
+    createCorner(Toggle.Indicator, 4)
 
     -- Toggle label
     Toggle.Label = Instance.new("TextLabel")
@@ -597,7 +603,7 @@ function Tab:AddSlider(id, config)
     Slider.Background.Position = UDim2.new(0, 6, 0, Slider.Compact and 4 or 22)
     Slider.Background.Parent = Slider.Frame
 
-    createCorner(Slider.Background, 5)
+    createCorner(Slider.Background, 6)
     createStroke(Slider.Background, theme.Accent)
 
     -- Barra de progresso
@@ -609,7 +615,7 @@ function Tab:AddSlider(id, config)
     Slider.Progress.Position = UDim2.new(0, 4, 0, 4)
     Slider.Progress.Parent = Slider.Background
 
-    createCorner(Slider.Progress, 5)
+    createCorner(Slider.Progress, 4)
     createStroke(Slider.Progress, theme.Outline)
 
     -- Parte preenchida
@@ -620,7 +626,7 @@ function Tab:AddSlider(id, config)
     Slider.ProgressBar.Size = UDim2.new(0, 10, 0, 18)
     Slider.ProgressBar.Parent = Slider.Progress
 
-    createCorner(Slider.ProgressBar, 5)
+    createCorner(Slider.ProgressBar, 4)
 
     -- Label de título (modo normal)
     Slider.NameLabel = Instance.new("TextLabel")
@@ -803,7 +809,7 @@ function Tab:AddButton(id, config)
     Button.Button.BorderSizePixel = 0  
     Button.Button.Parent = Button.Frame  
 
-    createCorner(Button.Button, 5)  
+    createCorner(Button.Button, 6)  
     createStroke(Button.Button, theme.Outline, 1)  
 
     -- controle de clique  
@@ -857,7 +863,7 @@ end
 if not Tab.Content:FindFirstChildOfClass("UIListLayout") then
     local layout = Instance.new("UIListLayout")
     layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 4) -- Espaçamento entre elementos
+    layout.Padding = UDim.new(0, 6) -- Espaçamento entre elementos
     layout.Parent = Tab.Content
 
     -- Atualizar CanvasSize automaticamente
@@ -909,7 +915,7 @@ function Tab:AddDropdown(id, config)
     Dropdown.Button.BorderSizePixel = 0
     Dropdown.Button.Parent = Dropdown.Frame
 
-    createCorner(Dropdown.Button, 5)
+    createCorner(Dropdown.Button, 6)
     createStroke(Dropdown.Button, theme.Outline, 1)
 
     -- Container do menu (com Scroll)
@@ -932,12 +938,12 @@ function Tab:AddDropdown(id, config)
     Dropdown.ListFrame.ScrollingDirection = Enum.ScrollingDirection.Y
     Dropdown.ListFrame.Parent = Dropdown.ListContainer
 
-    createCorner(Dropdown.ListFrame, 5)
+    createCorner(Dropdown.ListFrame, 6)
     createStroke(Dropdown.ListFrame, theme.Outline, 1)
     createPadding(Dropdown.ListFrame, 4, 4, 4, 4)
 
     -- Layout vertical para opções
-    local listLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 2)
+    local listLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 4)
     listLayout.Parent = Dropdown.ListFrame
 
     -- Seleção inicial
@@ -964,7 +970,7 @@ function Tab:AddDropdown(id, config)
         local optionBtn = Instance.new("TextButton")
         optionBtn.Name = "Option_" .. tostring(value)
         optionBtn.Text = tostring(value)
-        optionBtn.Size = UDim2.new(1, 0, 0, 22)
+        optionBtn.Size = UDim2.new(1, 0, 0, 24)
         optionBtn.BackgroundColor3 = theme.Outline
         optionBtn.TextColor3 = theme.Text
         optionBtn.Font = Enum.Font.SourceSans
@@ -972,7 +978,7 @@ function Tab:AddDropdown(id, config)
         optionBtn.BorderSizePixel = 0
         optionBtn.Parent = Dropdown.ListFrame
 
-        createCorner(optionBtn, 5)
+        createCorner(optionBtn, 6)
         createStroke(optionBtn, theme.Accent, 1)
 
         optionBtn.MouseButton1Click:Connect(function()
