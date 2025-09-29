@@ -1,5 +1,5 @@
 -- UI Library for Roblox
--- Kolt UI Library 1.0
+-- Kolt UI Library 1.1
 
 local Library = {}
 local Windows = {}
@@ -267,12 +267,14 @@ function Window:CreateWindow()
             self.LockButton.Text = self.isLocked and "Unlock" or "Lock"
         end)
         
+        
+        
         -- Toggle UI button
         self.ToggleUIButton = Instance.new("TextButton")
         self.ToggleUIButton.Name = "ToggleUIButton"
         self.ToggleUIButton.Text = "Toggle UI"
         self.ToggleUIButton.Size = UDim2.new(0, 80, 0, 30)
-        self.ToggleUIButton.Position = UDim2.new(0, 100, 0.5, 0)
+        self.ToggleUIButton.Position = UDim2.new(0, 10, 0.4, 0)
         self.ToggleUIButton.BackgroundColor3 = theme.Background
         self.ToggleUIButton.TextColor3 = theme.Text
         self.ToggleUIButton.Font = Enum.Font.SourceSansBold
