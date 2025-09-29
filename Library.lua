@@ -5,10 +5,15 @@ local Library = {}
 local Windows = {}
 
 -- Services
+-- Função gethui adaptada
 local function gethui()
-    return game:GetService("CoreGui") -- Replace with actual gethui() 
+    -- Verifica se existe a função nativa gethui (exploits costumam fornecer)
+    if get_hidden_ui or gethui then
+        return (get_hidden_ui and get_hidden_ui()) or gethui()
+    else
+        return game:GetService("CoreGui")
+    end
 end
-
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
