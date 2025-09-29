@@ -1,5 +1,5 @@
 -- UI Library for Roblox
--- Kolt UI Library 1.1
+-- Kolt UI Library 1.0
 
 local Library = {}
 local Windows = {}
@@ -111,26 +111,33 @@ function Window:CreateCustomCursor()
 
     self.CustomCursor = Instance.new("ImageLabel")
     self.CustomCursor.Name = "CustomCursor"
-    self.CustomCursor.Image = "rbxassetid://12230889708"
+    self.CustomCursor.Image = "rbxassetid://12230889708" -- sua seta
     self.CustomCursor.Size = UDim2.new(0, 32, 0, 32)
-    self.CustomCursor.AnchorPoint = Vector2.new(0, 0)
+    self.CustomCursor.AnchorPoint = Vector2.new(0.5, 0.5) -- centro do cursor
     self.CustomCursor.BackgroundTransparency = 1
     self.CustomCursor.ZIndex = 1000
     self.CustomCursor.Parent = self.ScreenGui
 
     UserInputService.MouseIconEnabled = false
 
-    local function updatePosition()
+    local lastPosition = UserInputService:GetMouseLocation()
+
+    local function updateCursor()
         local mousePos = UserInputService:GetMouseLocation()
         self.CustomCursor.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
+
+        -- Calcula o ângulo da seta baseado no movimento
+        local delta = mousePos - lastPosition
+        if delta.Magnitude > 0 then
+            local angle = math.deg(math.atan2(delta.Y, delta.X))
+            self.CustomCursor.Rotation = angle
+        end
+
+        lastPosition = mousePos
     end
 
-    updatePosition()
-    self.CursorConnection = UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            updatePosition()
-        end
-    end)
+    -- Atualiza a cada frame
+    self.CursorConnection = RunService.RenderStepped:Connect(updateCursor)
 end
 
 function Window:DestroyCustomCursor()
