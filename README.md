@@ -1,6 +1,6 @@
-# 🎨 Kolt UI Library
+# Kolt UI Library
 
-> Uma biblioteca de interface moderna e responsiva para Roblox com suporte mobile e desktop
+Uma biblioteca de interface moderna e responsiva para Roblox com suporte completo para mobile e desktop.
 
 [![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)]()
 [![Version](https://img.shields.io/badge/version-1.0-blue)]()
@@ -8,7 +8,7 @@
 
 ---
 
-## 📥 Instalação
+## Instalação
 
 ```lua
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DH-SOARESE/UI-Kolt/refs/heads/main/Library.lua"))()()
@@ -16,19 +16,22 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DH-SO
 
 ---
 
-## ✨ Características
+## Características
 
-- 🎯 **Interface Moderna**: Design minimalista com tema escuro
-- 📱 **Responsivo**: Suporte completo para mobile e desktop
-- 🔧 **Personalizável**: Sistema de abas e elementos configuráveis
-- 🎨 **Componentes Ricos**: Toggles, Sliders, Dropdowns, Botões e mais
-- 🔒 **Sistema de Bloqueio**: Lock/Unlock no mobile
-- ⌨️ **Atalhos**: Toggle com F3 no desktop
-- 🎭 **Animações Suaves**: Transições fluidas entre estados
+- Interface moderna com tema escuro personalizado
+- Design totalmente responsivo (mobile e desktop)
+- Sistema de abas com navegação intuitiva
+- Componentes ricos: Toggle, Slider, Dropdown, Button, Label, Divider
+- Sistema de cursor personalizado automático
+- Animações suaves e transições fluidas
+- Sistema de bloqueio de movimento (mobile)
+- Atalho de teclado F3 para toggle (desktop)
+- Suporte a DPI scaling
+- Double-click confirmation nos botões
 
 ---
 
-## 🚀 Uso Básico
+## Uso Básico
 
 ### Criar uma Janela
 
@@ -37,10 +40,15 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DH-SO
 
 local Window = Library:CreateWindow({
     Title = "Minha UI",
-    Center = true,  -- Centralizar janela
-    MenuFadeTime = 0.2  -- Tempo de fade (segundos)
+    Center = true,
+    MenuFadeTime = 0.15
 })
 ```
+
+**Opções:**
+- `Title` - Título da janela
+- `Center` - Centralizar janela (padrão: true)
+- `MenuFadeTime` - Tempo de fade em segundos (padrão: 0.15)
 
 ### Adicionar uma Aba
 
@@ -50,29 +58,48 @@ local Tab = Window:AddTab("Principal")
 
 ---
 
-## 🧩 Componentes
+## Componentes
 
-### 🔘 Toggle (Interruptor)
+### Toggle
+
+Interruptor com suporte a KeyPicker integrado.
 
 ```lua
-Tab:AddToggle("auto_farm", {
+local Toggle = Tab:AddToggle("auto_farm", {
     Text = "Auto Farm",
     Default = false,
+    Disabled = false,
     Callback = function(state)
         print("Toggle:", state)
     end
 })
+
+-- Adicionar KeyPicker ao Toggle
+Toggle:AddKeyPicker("farm_key", {
+    Mode = "Toggle",
+    Default = "F",
+    Text = "Hotkey",
+    SyncToggleState = false
+})
 ```
 
-**Opções:**
+**Opções Toggle:**
 - `Text` - Texto do toggle
 - `Default` - Estado inicial (true/false)
 - `Disabled` - Desabilitar interação
-- `Callback` - Função chamada ao mudar estado
+- `Callback` - Função ao mudar estado
+
+**Opções KeyPicker:**
+- `Mode` - Modo de ativação ("Toggle")
+- `Default` - Tecla padrão (ex: "F", "G")
+- `Text` - Texto exibido
+- `SyncToggleState` - Sincronizar com estado do toggle
 
 ---
 
-### 🎚️ Slider (Controle Deslizante)
+### Slider
+
+Controle deslizante com dois modos de exibição.
 
 ```lua
 Tab:AddSlider("velocidade", {
@@ -95,35 +122,35 @@ Tab:AddSlider("velocidade", {
 - `Default` - Valor inicial
 - `Min` - Valor mínimo
 - `Max` - Valor máximo
-- `Suffix` - Sufixo (ex: "%", "x", "m/s")
+- `Suffix` - Sufixo exibido (%, x, m/s)
 - `Rounding` - Incremento (1 = inteiros, 0.1 = decimais)
-- `Compact` - Modo compacto (nome + valor na mesma linha)
+- `Compact` - Modo compacto (nome + valor mesma linha)
 - `HideMax` - Ocultar valor máximo
-- `Callback` - Função chamada ao mudar valor
+- `Callback` - Função ao mudar valor
 
-**Modos de Exibição:**
-
-**Normal:**
+**Exemplo Modo Normal:**
 ```
 Velocidade
 [████████░░] 80 / 100%
 ```
 
-**Compact:**
+**Exemplo Modo Compact:**
 ```
 [██████████] Velocidade: 80%
 ```
 
 ---
 
-### 📋 Dropdown (Menu Suspenso)
+### Dropdown
+
+Menu suspenso com seleção simples ou múltipla.
 
 ```lua
 Tab:AddDropdown("mapa", {
     Text = "Selecione o Mapa",
     Value = {"Mapa 1", "Mapa 2", "Mapa 3"},
     Default = "Mapa 1",
-    Mult = false,  -- Seleção múltipla
+    Mult = false,
     Callback = function(selected)
         print("Selecionado:", selected)
     end
@@ -132,10 +159,10 @@ Tab:AddDropdown("mapa", {
 
 **Opções:**
 - `Text` - Nome do dropdown
-- `Value` - Lista de opções (array)
+- `Value` - Array de opções
 - `Default` - Valor(es) inicial(is)
 - `Mult` - Permitir seleção múltipla
-- `Callback` - Função chamada ao selecionar
+- `Callback` - Função ao selecionar
 
 **Seleção Múltipla:**
 ```lua
@@ -145,20 +172,30 @@ Tab:AddDropdown("itens", {
     Default = {"Espada", "Escudo"},
     Mult = true,
     Callback = function(selected)
-        -- selected é uma array: {"Espada", "Escudo"}
+        -- selected é array: {"Espada", "Escudo"}
     end
 })
 ```
 
+**Recursos:**
+- Scroll automático para listas grandes
+- Destaque visual para itens selecionados
+- Auto-close em seleção simples
+- Máximo de 150px de altura com scroll
+
 ---
 
-### 🔵 Button (Botão)
+### Button
+
+Botão com suporte a confirmação de double-click.
 
 ```lua
-Tab:AddButton("salvar", {
-    Text = "Salvar Config",
+Tab:AddButton("reset", {
+    Text = "Resetar",
+    DoubleClick = false,
+    ConfirmText = "Tem certeza?",
     Callback = function()
-        print("Salvando...")
+        print("Executado!")
     end
 })
 ```
@@ -166,47 +203,64 @@ Tab:AddButton("salvar", {
 **Opções:**
 - `Text` - Texto do botão
 - `Size` - Tamanho customizado (UDim2)
+- `DoubleClick` - Requer duplo clique (padrão: false)
+- `ConfirmText` - Texto de confirmação
 - `Callback` - Função ao clicar
+
+**Double-Click:**
+- Primeiro clique: Exibe texto de confirmação
+- Segundo clique (em 0.3s): Executa ação
+- Timeout: 1 segundo para retornar ao normal
+- Animação suave na transição de texto
 
 ---
 
-### 📝 Label (Texto)
+### Label
+
+Texto estático para informações.
 
 ```lua
 Tab:AddLabel("info", {
     Text = "Bem-vindo à UI!",
-    Size = UDim2.new(1, 0, 0, 22)  -- Opcional
+    Size = UDim2.new(1, 0, 0, 22)
 })
 ```
 
 **Opções:**
 - `Text` - Conteúdo do texto
-- `Size` - Tamanho (UDim2)
+- `Size` - Tamanho (UDim2, opcional)
 
 ---
 
-### ➖ Divider (Divisor)
+### Divider
+
+Divisor visual para organizar seções.
 
 ```lua
 Tab:AddDivider("div1", {
-    Size = UDim2.new(1, 0, 0, 6)  -- Opcional
+    Size = UDim2.new(1, 0, 0, 6)
 })
 ```
 
+**Opções:**
+- `Size` - Tamanho (UDim2, opcional)
+
 ---
 
-## 🎮 Controles
+## Controles
 
-### 💻 Desktop
+### Desktop
 - **F3** - Mostrar/Ocultar UI
+- **Cursor Personalizado** - Ativado automaticamente ao abrir UI
 
-### 📱 Mobile
+### Mobile
 - **Botão "Toggle UI"** - Mostrar/Ocultar UI
 - **Botão "Lock/Unlock"** - Bloquear/Desbloquear movimento da janela
+- **Touch Controls** - Todos os elementos otimizados para toque
 
 ---
 
-## ⚙️ Configurações Avançadas
+## Configurações Avançadas
 
 ### Escala DPI
 
@@ -223,66 +277,76 @@ Library.IsMobile = true  -- Forçar modo mobile
 ### Descarregar UI
 
 ```lua
-Library.Unload()  -- Remove todas as janelas
+Library.Unload()  -- Remove todas as janelas e restaura cursor
 ```
 
 ---
 
-## 📱 Design Responsivo
+## Design Responsivo
 
-A biblioteca detecta automaticamente o tamanho da tela:
+A biblioteca detecta automaticamente o dispositivo:
 
-- **Mobile**: `< 768px` de largura
-  - UI ocupa 90% da tela
-  - Botões de controle flutuantes
-  - Elementos maiores para toque
+**Mobile (< 768px):**
+- UI ocupa 90% da largura e 85% da altura
+- Botões flutuantes de controle
+- Elementos maiores para toque
+- Scroll otimizado
 
-- **Desktop**: `≥ 768px` de largura
-  - Janela de tamanho fixo (536x296)
-  - Controles por teclado
-  - Interface compacta
+**Desktop (≥ 768px):**
+- Janela fixa de 536x296 pixels
+- Controles por teclado (F3)
+- Interface compacta
+- Cursor personalizado
 
 ---
 
-## 🎨 Tema de Cores
+## Tema de Cores
 
 ```lua
-Background = RGB(30, 30, 30)
-InnerBackground = RGB(35, 35, 35)
-Outline = RGB(50, 50, 50)
-Accent = RGB(130, 55, 236) -- Roxo
-Text = RGB(255, 255, 255)
-DarkText = RGB(170, 170, 170)
+Background       = RGB(28, 28, 28)
+InnerBackground  = RGB(32, 32, 32)
+Outline          = RGB(45, 45, 45)
+Accent           = RGB(140, 60, 245)  -- Roxo vibrante
+Text             = RGB(245, 245, 245)
+DarkText         = RGB(160, 160, 160)
 ```
 
+**Border Radius:**
+- MainFrame: 8px
+- Componentes: 6px
+- Detalhes: 4px
+
 ---
 
-## 📦 Exemplo Completo
+## Exemplo Completo
 
 ```lua
--- Carregar biblioteca
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DH-SOARESE/UI-Kolt/refs/heads/main/Library.lua"))()()
 
--- Criar janela
 local Window = Library:CreateWindow({
-    Title = "Script Hub",
+    Title = "Script Hub v1.0",
     Center = true
 })
 
--- Criar aba
+-- Aba Principal
 local MainTab = Window:AddTab("Principal")
 
--- Adicionar elementos
 MainTab:AddLabel("lbl1", {
-    Text = "=== Configurações ==="
+    Text = "=== Auto Farm ==="
 })
 
-MainTab:AddToggle("autofarm", {
+local farmToggle = MainTab:AddToggle("autofarm", {
     Text = "Auto Farm",
     Default = false,
     Callback = function(state)
         _G.AutoFarm = state
     end
+})
+
+farmToggle:AddKeyPicker("farm_key", {
+    Mode = "Toggle",
+    Default = "F",
+    Text = "Hotkey"
 })
 
 MainTab:AddSlider("speed", {
@@ -301,95 +365,181 @@ MainTab:AddDivider("div1", {})
 
 MainTab:AddDropdown("weapon", {
     Text = "Arma",
-    Value = {"Espada", "Pistola", "Rifle"},
+    Value = {"Espada", "Pistola", "Rifle", "Arco"},
     Default = "Espada",
     Callback = function(selected)
-        print("Arma selecionada:", selected[1])
+        _G.SelectedWeapon = selected[1]
     end
 })
 
 MainTab:AddButton("reset", {
     Text = "Resetar Personagem",
+    DoubleClick = true,
+    ConfirmText = "Confirmar Reset?",
     Callback = function()
         game.Players.LocalPlayer.Character.Humanoid.Health = 0
     end
 })
 
--- Segunda aba
+-- Aba Configurações
 local SettingsTab = Window:AddTab("Configurações")
 
+SettingsTab:AddLabel("lbl2", {
+    Text = "=== Visual ==="
+})
+
 SettingsTab:AddToggle("esp", {
-    Text = "ESP",
+    Text = "ESP Players",
     Default = false,
     Callback = function(state)
         _G.ESP = state
+    end
+})
+
+SettingsTab:AddSlider("fov", {
+    Text = "FOV",
+    Default = 70,
+    Min = 60,
+    Max = 120,
+    Compact = true,
+    Rounding = 5,
+    Callback = function(value)
+        workspace.CurrentCamera.FieldOfView = value
     end
 })
 ```
 
 ---
 
-## 🐛 Solução de Problemas
+## Solução de Problemas
 
 ### UI não aparece
-- Verifique se o executor suporta `gethui()` ou `game:GetService("CoreGui")`
-- Tente pressionar F3 (desktop) ou o botão Toggle UI (mobile)
+- Verifique se o executor suporta `gethui()` ou `CoreGui`
+- Pressione F3 (desktop) ou botão Toggle UI (mobile)
+- Verifique console por erros
 
-### Slider não atualiza
+### Slider não responde
 - Certifique-se de que `Rounding` está correto
-- Valores decimais requerem `Rounding = 0.1` ou menor
+- Valores decimais precisam de `Rounding = 0.1` ou menor
+- Verifique se Min < Max
 
-### Dropdown não fecha (mobile)
-- Use `Mult = false` para fechar automaticamente ao selecionar
+### Dropdown não fecha
+- Use `Mult = false` para auto-close
 - Com `Mult = true`, clique no botão ▼ novamente
 
+### Cursor personalizado não aparece
+- Cursor é ativado automaticamente ao abrir UI
+- Desativado ao fechar UI (F3 ou Toggle)
+
+### Double-click não funciona
+- Defina `DoubleClick = true`
+- Clique duas vezes em menos de 0.3 segundos
+- Aguarde timeout de 1 segundo se errar
+
 ---
 
-## 🔄 Status do Desenvolvimento
+## Status do Desenvolvimento
 
+**Implementado:**
 - [x] Sistema de janelas
-- [x] Sistema de abas
-- [x] Toggles
-- [x] Sliders (normal e compacto)
-- [x] Botões
-- [x] Labels
-- [x] Divisores
-- [x] Dropdowns (simples e múltiplo)
-- [x] Suporte mobile
-- [x] Sistema de drag
-- [x] Toggle UI (F3 / Botão)
-- [ ] Colorpicker
-- [ ] Textbox
-- [ ] Keybind
-- [ ] Sistema de salvamento
+- [x] Sistema de abas com scroll
+- [x] Toggle com KeyPicker
+- [x] Slider (normal e compacto)
+- [x] Dropdown (simples e múltiplo)
+- [x] Button com double-click
+- [x] Label e Divider
+- [x] Cursor personalizado
+- [x] Suporte mobile completo
+- [x] Sistema de drag/lock
+- [x] Toggle UI (F3/Botão)
+- [x] DPI Scaling
+
+**Planejado:**
+- [ ] ColorPicker
+- [ ] TextBox
+- [ ] Keybind Customizável
+- [ ] Sistema de salvamento de configurações
+- [ ] Temas customizáveis
+- [ ] Notificações
+- [ ] Searchbox para dropdowns longos
 
 ---
 
-## 📄 Licença
+## Notas Técnicas
 
-Esta biblioteca está em desenvolvimento e é fornecida "como está".
+### Performance
+- Evite callbacks pesados em sliders/toggles
+- Use `Compact = true` em sliders quando possível
+- Limite dropdowns a ~50 opções
+
+### Organização
+- Use IDs únicos para cada elemento
+- Organize elementos com dividers
+- Agrupe funcionalidades relacionadas em abas
+
+### Mobile
+- Teste sempre em dispositivos móveis
+- Botões de controle são posicionados automaticamente
+- Touch gestures otimizados
+
+### Cursor
+- Cursor personalizado usa ID: `rbxassetid://12230889708`
+- Atualizado a cada frame via `RunService.RenderStepped`
+- Restaura cursor padrão ao fechar UI
 
 ---
 
-## 💡 Dicas
+## API Reference
 
-1. **Performance**: Evite callbacks pesados em sliders/toggles
-2. **Organização**: Use divisores para separar seções
-3. **Mobile**: Teste sempre em dispositivos móveis
-4. **IDs únicos**: Use IDs diferentes para cada elemento
+### Library
+
+```lua
+Library.DPIScale(scale: number)
+Library.Unload()
+Library.IsMobile = boolean
+Library:CreateWindow(config: table) -> Window
+```
+
+### Window
+
+```lua
+Window:AddTab(name: string) -> Tab
+Window:SelectTab(tab: Tab)
+Window:CreateCustomCursor()
+Window:DestroyCustomCursor()
+```
+
+### Tab
+
+```lua
+Tab:AddToggle(id: string, config: table) -> Toggle
+Tab:AddSlider(id: string, config: table) -> Slider
+Tab:AddDropdown(id: string, config: table) -> Dropdown
+Tab:AddButton(id: string, config: table) -> Button
+Tab:AddLabel(id: string, config: table) -> Label
+Tab:AddDivider(id: string, config: table) -> Divider
+```
+
+### Toggle
+
+```lua
+Toggle:AddKeyPicker(id: string, config: table) -> KeyPicker
+```
 
 ---
 
-## 🤝 Contribuindo
+## Licença
 
-Este projeto está em desenvolvimento ativo. Sugestões e feedback são bem-vindos!
+Esta biblioteca está em desenvolvimento ativo e é fornecida "como está" sem garantias.
 
 ---
 
-<div align="center">
+## Contribuindo
 
-**Feito com ❤️ para a comunidade Roblox**
+Sugestões, bugs e feedback são bem-vindos!
 
 [Reportar Bug](https://github.com/DH-SOARESE/UI-Kolt/issues) • [Sugerir Feature](https://github.com/DH-SOARESE/UI-Kolt/issues)
 
-</div>
+---
+
+**Desenvolvido para a comunidade Roblox**
