@@ -1,5 +1,5 @@
 -- UI Library for Roblox
--- Kolt UI Library 1.0
+-- Kolt UI Library 1.1
 
 local Library = {}
 local Windows = {}
@@ -99,9 +99,50 @@ function Window:new(config)
     self.Tabs = {}
     self.CurrentTab = nil
     self.isLocked = false
+    self.CustomCursor = nil
+    self.CursorConnection = nil
     
     self:CreateWindow()
     return self
+end
+
+function Window:CreateCustomCursor()
+    if self.CustomCursor then return end
+
+    self.CustomCursor = Instance.new("ImageLabel")
+    self.CustomCursor.Name = "CustomCursor"
+    self.CustomCursor.Image = "rbxassetid://12230889708"
+    self.CustomCursor.Size = UDim2.new(0, 32, 0, 32)
+    self.CustomCursor.AnchorPoint = Vector2.new(0, 0)
+    self.CustomCursor.BackgroundTransparency = 1
+    self.CustomCursor.ZIndex = 1000
+    self.CustomCursor.Parent = self.ScreenGui
+
+    UserInputService.MouseIconEnabled = false
+
+    local function updatePosition()
+        local mousePos = UserInputService:GetMouseLocation()
+        self.CustomCursor.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
+    end
+
+    updatePosition()
+    self.CursorConnection = UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            updatePosition()
+        end
+    end)
+end
+
+function Window:DestroyCustomCursor()
+    if self.CustomCursor then
+        self.CustomCursor:Destroy()
+        self.CustomCursor = nil
+    end
+    if self.CursorConnection then
+        self.CursorConnection:Disconnect()
+        self.CursorConnection = nil
+    end
+    UserInputService.MouseIconEnabled = true
 end
 
 function Window:CreateWindow()
@@ -290,8 +331,10 @@ function Window:CreateWindow()
                 task.wait(self.MenuFadeTime)
                 self.MainFrame.Visible = false
                 self.MainFrame.BackgroundTransparency = 0
+                self:DestroyCustomCursor()
             else
                 self.MainFrame.Visible = true
+                self:CreateCustomCursor()
                 TweenService:Create(self.MainFrame, TweenInfo.new(self.MenuFadeTime), {BackgroundTransparency = 0}):Play()
             end
         end)
@@ -304,8 +347,10 @@ function Window:CreateWindow()
                     task.wait(self.MenuFadeTime)
                     self.MainFrame.Visible = false
                     self.MainFrame.BackgroundTransparency = 0
+                    self:DestroyCustomCursor()
                 else
                     self.MainFrame.Visible = true
+                    self:CreateCustomCursor()
                     TweenService:Create(self.MainFrame, TweenInfo.new(self.MenuFadeTime), {BackgroundTransparency = 0}):Play()
                 end
             end
@@ -823,7 +868,7 @@ function Tab:AddDropdown(id, config)
     Dropdown.Default = config.Default or {}
     Dropdown.Mult = config.Mult or false
     Dropdown.Callback = config.Callback or function() end
-    Dropdown.originalHeight = (config.Size and config.Size.Y.Offset) or 38
+    Dropdown.originalHeight = (config.Size and config.Size.Y.Offset) or 24
 
     -- Container do Dropdown
     Dropdown.Frame = Instance.new("Frame")
@@ -865,8 +910,9 @@ function Tab:AddDropdown(id, config)
     Dropdown.ListContainer.Name = id .. "_ListContainer"
     Dropdown.ListContainer.BackgroundTransparency = 1
     Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, 0)
-    Dropdown.ListContainer.Position = UDim2.new(0, 0, 1, 2)
+    Dropdown.ListContainer.Position = UDim2.new(0, 0, 0, 24)
     Dropdown.ListContainer.ClipsDescendants = true
+    Dropdown.ListContainer.Visible = false
     Dropdown.ListContainer.Parent = Dropdown.Frame
 
     Dropdown.ListFrame = Instance.new("ScrollingFrame")
@@ -925,14 +971,30 @@ function Tab:AddDropdown(id, config)
         optionBtn.MouseButton1Click:Connect(function()
             if Dropdown.Mult then
                 Dropdown.Selected[value] = not Dropdown.Selected[value]
+                optionBtn.BackgroundColor3 = Dropdown.Selected[value] and theme.Accent or theme.Outline
             else
-                Dropdown.Selected = {}
-                Dropdown.Selected[value] = true
+                for _, opt in ipairs(Dropdown.ListFrame:GetChildren()) do
+                    if opt:IsA("TextButton") then
+                        opt.BackgroundColor3 = theme.Outline
+                    end
+                end
+                Dropdown.Selected = {[value] = true}
+                optionBtn.BackgroundColor3 = theme.Accent
                 Dropdown.ListContainer.Visible = false
                 Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, 0)
+                Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
+                Dropdown.Button.Text = "▼"
             end
             updateDropdown()
         end)
+    end
+
+    -- Definir cores iniciais para opções selecionadas
+    for _, value in ipairs(Dropdown.Value) do
+        local opt = Dropdown.ListFrame:FindFirstChild("Option_" .. tostring(value))
+        if opt and Dropdown.Selected[value] then
+            opt.BackgroundColor3 = theme.Accent
+        end
     end
 
     -- Abrir/fechar menu
@@ -945,9 +1007,11 @@ function Tab:AddDropdown(id, config)
             Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, displayHeight)
             Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
             Dropdown.ListFrame.CanvasPosition = Vector2.new(0, 0)
-            Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight + displayHeight + 2)
+            Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight + displayHeight)
+            Dropdown.Button.Text = "▲"
         else
             Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
+            Dropdown.Button.Text = "▼"
         end
     end)
 
