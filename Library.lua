@@ -801,7 +801,7 @@ function Tab:AddButton(id, config)
     return Button  
 end
 
- -- AddDropdown
+-- AddDropdown
 function Tab:AddDropdown(id, config)
     local Dropdown = {}
     Dropdown.ID = id
@@ -812,7 +812,7 @@ function Tab:AddDropdown(id, config)
     Dropdown.Callback = config.Callback or function() end
     Dropdown.originalHeight = (config.Size and config.Size.Y.Offset) or 38
 
-    -- Container frame do Dropdown
+    -- Container principal do Dropdown
     Dropdown.Frame = Instance.new("Frame")
     Dropdown.Frame.Name = id
     Dropdown.Frame.BackgroundTransparency = 1
@@ -834,7 +834,7 @@ function Tab:AddDropdown(id, config)
     Dropdown.Label.Position = UDim2.new(0, 0, 0, 0)
     Dropdown.Label.Parent = Dropdown.Frame
 
-    -- Botão para abrir/fechar o menu
+    -- Botão de abrir/fechar
     Dropdown.Button = Instance.new("TextButton")
     Dropdown.Button.Name = id .. "_Button"
     Dropdown.Button.Text = "▼"
@@ -850,15 +850,16 @@ function Tab:AddDropdown(id, config)
     createCorner(Dropdown.Button, 5)
     createStroke(Dropdown.Button, theme.Outline, 1)
 
-    -- Container do menu com Scroll
+    -- Container do menu
     Dropdown.ListContainer = Instance.new("Frame")
     Dropdown.ListContainer.Name = id .. "_ListContainer"
     Dropdown.ListContainer.BackgroundTransparency = 1
-    Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, 0) -- ajustado dinamicamente
+    Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, 0)
     Dropdown.ListContainer.Position = UDim2.new(0, 0, 1, 2)
     Dropdown.ListContainer.ClipsDescendants = true
     Dropdown.ListContainer.Parent = Dropdown.Frame
 
+    -- ScrollingFrame para opções
     Dropdown.ListFrame = Instance.new("ScrollingFrame")
     Dropdown.ListFrame.Name = id .. "_ListFrame"
     Dropdown.ListFrame.BackgroundColor3 = theme.InnerBackground
@@ -874,10 +875,11 @@ function Tab:AddDropdown(id, config)
     createStroke(Dropdown.ListFrame, theme.Outline, 1)
     createPadding(Dropdown.ListFrame, 4, 4, 4, 4)
 
+    -- Layout vertical para opções
     Dropdown.ListLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 2)
     Dropdown.ListLayout.Parent = Dropdown.ListFrame
 
-    -- Marcação de opções selecionadas
+    -- Seleção inicial
     Dropdown.Selected = {}
     local defaultTable = type(Dropdown.Default) == "table" and Dropdown.Default or {Dropdown.Default}
     for _, v in ipairs(defaultTable) do
@@ -901,7 +903,7 @@ function Tab:AddDropdown(id, config)
         return selected
     end
 
-    -- Criar cada opção no menu
+    -- Criar opções
     for _, value in ipairs(Dropdown.Value) do
         local optionBtn = Instance.new("TextButton")
         optionBtn.Name = "Option_" .. tostring(value)
@@ -930,16 +932,17 @@ function Tab:AddDropdown(id, config)
         end)
     end
 
-    -- Toggle do menu
+    -- Abrir/fechar menu com altura dinâmica e scroll
     Dropdown.Button.MouseButton1Click:Connect(function()
         Dropdown.ListContainer.Visible = not Dropdown.ListContainer.Visible
         if Dropdown.ListContainer.Visible then
-            -- Ajusta altura de acordo com o conteúdo
+            -- Calcular altura do conteúdo
             local contentHeight = Dropdown.ListLayout.AbsoluteContentSize.Y + 8
             local maxHeight = 150
             local displayHeight = math.min(contentHeight, maxHeight)
             Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, displayHeight)
             Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+            Dropdown.ListFrame.CanvasPosition = Vector2.new(0, 0) -- resetar scroll para topo
             Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight + displayHeight + 2)
         else
             Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
