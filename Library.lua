@@ -801,7 +801,20 @@ function Tab:AddButton(id, config)
     return Button  
 end
 
--- AddDropdown
+-- Certifique-se de que Tab.Content tenha um UIListLayout
+if not Tab.Content:FindFirstChildOfClass("UIListLayout") then
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 4) -- Espaçamento entre elementos
+    layout.Parent = Tab.Content
+
+    -- Atualizar CanvasSize automaticamente
+    Tab.Content:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Tab.Content.CanvasSize = UDim2.new(0, 0, 0, Tab.Content.AbsoluteContentSize.Y)
+    end)
+end
+
+-- Função AddDropdown
 function Tab:AddDropdown(id, config)
     local Dropdown = {}
     Dropdown.ID = id
@@ -812,19 +825,17 @@ function Tab:AddDropdown(id, config)
     Dropdown.Callback = config.Callback or function() end
     Dropdown.originalHeight = (config.Size and config.Size.Y.Offset) or 38
 
-    -- Container principal do Dropdown
+    -- Container do Dropdown
     Dropdown.Frame = Instance.new("Frame")
     Dropdown.Frame.Name = id
     Dropdown.Frame.BackgroundTransparency = 1
     Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
+    Dropdown.Frame.LayoutOrder = #Tab.Content:GetChildren() + 1 -- garante ordem
     Dropdown.Frame.Parent = Tab.Content
 
     -- Label principal
     Dropdown.Label = Instance.new("TextLabel")
-    Dropdown.Label.Name = id .. "_Label"
     Dropdown.Label.Text = Dropdown.Text
-    Dropdown.Label.TextWrapped = true
-    Dropdown.Label.BorderSizePixel = 0
     Dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
     Dropdown.Label.TextScaled = true
     Dropdown.Label.BackgroundTransparency = 1
@@ -836,7 +847,6 @@ function Tab:AddDropdown(id, config)
 
     -- Botão de abrir/fechar
     Dropdown.Button = Instance.new("TextButton")
-    Dropdown.Button.Name = id .. "_Button"
     Dropdown.Button.Text = "▼"
     Dropdown.Button.Size = UDim2.new(0, 32, 0, 20)
     Dropdown.Button.Position = UDim2.new(1, -32, 0, 0)
@@ -850,7 +860,7 @@ function Tab:AddDropdown(id, config)
     createCorner(Dropdown.Button, 5)
     createStroke(Dropdown.Button, theme.Outline, 1)
 
-    -- Container do menu
+    -- Container do menu (com Scroll)
     Dropdown.ListContainer = Instance.new("Frame")
     Dropdown.ListContainer.Name = id .. "_ListContainer"
     Dropdown.ListContainer.BackgroundTransparency = 1
@@ -859,9 +869,7 @@ function Tab:AddDropdown(id, config)
     Dropdown.ListContainer.ClipsDescendants = true
     Dropdown.ListContainer.Parent = Dropdown.Frame
 
-    -- ScrollingFrame para opções
     Dropdown.ListFrame = Instance.new("ScrollingFrame")
-    Dropdown.ListFrame.Name = id .. "_ListFrame"
     Dropdown.ListFrame.BackgroundColor3 = theme.InnerBackground
     Dropdown.ListFrame.Size = UDim2.new(1, 0, 1, 0)
     Dropdown.ListFrame.BorderSizePixel = 0
@@ -876,8 +884,8 @@ function Tab:AddDropdown(id, config)
     createPadding(Dropdown.ListFrame, 4, 4, 4, 4)
 
     -- Layout vertical para opções
-    Dropdown.ListLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 2)
-    Dropdown.ListLayout.Parent = Dropdown.ListFrame
+    local listLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 2)
+    listLayout.Parent = Dropdown.ListFrame
 
     -- Seleção inicial
     Dropdown.Selected = {}
@@ -889,18 +897,13 @@ function Tab:AddDropdown(id, config)
     end
 
     local function updateDropdown()
-        local selected = Dropdown.GetSelected()
-        local displayText = Dropdown.Mult and table.concat(selected, ", ") or (selected[1] or "")
-        Dropdown.Label.Text = Dropdown.Text .. (displayText ~= "" and ": " .. displayText or "")
-        Dropdown.Callback(selected)
-    end
-
-    function Dropdown.GetSelected()
         local selected = {}
         for value in pairs(Dropdown.Selected) do
             table.insert(selected, value)
         end
-        return selected
+        local displayText = Dropdown.Mult and table.concat(selected, ", ") or (selected[1] or "")
+        Dropdown.Label.Text = Dropdown.Text .. (displayText ~= "" and ": " .. displayText or "")
+        Dropdown.Callback(selected)
     end
 
     -- Criar opções
@@ -932,17 +935,16 @@ function Tab:AddDropdown(id, config)
         end)
     end
 
-    -- Abrir/fechar menu com altura dinâmica e scroll
+    -- Abrir/fechar menu
     Dropdown.Button.MouseButton1Click:Connect(function()
         Dropdown.ListContainer.Visible = not Dropdown.ListContainer.Visible
         if Dropdown.ListContainer.Visible then
-            -- Calcular altura do conteúdo
-            local contentHeight = Dropdown.ListLayout.AbsoluteContentSize.Y + 8
+            local contentHeight = listLayout.AbsoluteContentSize.Y + 8
             local maxHeight = 150
             local displayHeight = math.min(contentHeight, maxHeight)
             Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, displayHeight)
             Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
-            Dropdown.ListFrame.CanvasPosition = Vector2.new(0, 0) -- resetar scroll para topo
+            Dropdown.ListFrame.CanvasPosition = Vector2.new(0, 0)
             Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight + displayHeight + 2)
         else
             Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
@@ -953,7 +955,6 @@ function Tab:AddDropdown(id, config)
     Tab.Elements[id] = Dropdown
     return Dropdown
 end
-
     self.Tabs[name] = Tab
     
     -- Select first tab automatically
