@@ -401,82 +401,118 @@ function Window:AddTab(name)
     end)
     
     -- AddToggle
-    function Tab:AddToggle(id, config)
-        local Toggle = {}
-        Toggle.ID = id
-        Toggle.Text = config.Text or "Toggle"
-        Toggle.Default = config.Default or false
-        Toggle.Disabled = config.Disabled or false
-        Toggle.Callback = config.Callback or function() end
-        Toggle.State = Toggle.Default
-        
-        -- Create toggle frame
-        Toggle.Frame = Instance.new("Frame")
-        Toggle.Frame.Name = id
-        Toggle.Frame.BorderSizePixel = 0
-        Toggle.Frame.BackgroundTransparency = 1
-        Toggle.Frame.Size = UDim2.new(1, 0, 0, 34)
-        Toggle.Frame.Parent = Tab.Content
-        
-        -- Toggle button
-        Toggle.Button = Instance.new("TextButton")
-        Toggle.Button.BorderSizePixel = 0
-        Toggle.Button.AutoButtonColor = false
-        Toggle.Button.BackgroundColor3 = theme.Outline
-        Toggle.Button.Size = UDim2.new(0, 22, 0, 22)
-        Toggle.Button.Position = UDim2.new(0, 0, 0, 6)
-        Toggle.Button.Text = ""
-        Toggle.Button.Parent = Toggle.Frame
-        
-        createCorner(Toggle.Button, 5)
-        createStroke(Toggle.Button, theme.Accent)
-        
-        -- Toggle indicator
-        Toggle.Indicator = Instance.new("Frame")
-        Toggle.Indicator.Name = "Indicator"
+function Tab:AddToggle(id, config)
+    local Toggle = {}
+    Toggle.ID = id
+    Toggle.Text = config.Text or "Toggle"
+    Toggle.Default = config.Default or false
+    Toggle.Disabled = config.Disabled or false
+    Toggle.Callback = config.Callback or function() end
+    Toggle.State = Toggle.Default
+
+    -- Toggle frame
+    Toggle.Frame = Instance.new("Frame")
+    Toggle.Frame.Name = id
+    Toggle.Frame.BorderSizePixel = 0
+    Toggle.Frame.BackgroundTransparency = 1
+    Toggle.Frame.Size = UDim2.new(1, 0, 0, 34)
+    Toggle.Frame.Parent = Tab.Content
+
+    -- Toggle button
+    Toggle.Button = Instance.new("TextButton")
+    Toggle.Button.BorderSizePixel = 0
+    Toggle.Button.AutoButtonColor = false
+    Toggle.Button.BackgroundColor3 = theme.Outline
+    Toggle.Button.Size = UDim2.new(0, 22, 0, 22)
+    Toggle.Button.Position = UDim2.new(0, 0, 0, 6)
+    Toggle.Button.Text = ""
+    Toggle.Button.Parent = Toggle.Frame
+
+    createCorner(Toggle.Button, 5)
+    createStroke(Toggle.Button, theme.Accent)
+
+    -- Toggle indicator
+    Toggle.Indicator = Instance.new("Frame")
+    Toggle.Indicator.Name = "Indicator"
+    Toggle.Indicator.Visible = Toggle.State
+    Toggle.Indicator.BorderSizePixel = 0
+    Toggle.Indicator.BackgroundColor3 = theme.ToggleOn
+    Toggle.Indicator.Size = UDim2.new(0, 14, 0, 14)
+    Toggle.Indicator.Position = UDim2.new(0, 4, 0, 4)
+    Toggle.Indicator.Parent = Toggle.Button
+
+    createCorner(Toggle.Indicator, 3)
+
+    -- Toggle label
+    Toggle.Label = Instance.new("TextLabel")
+    Toggle.Label.Name = "Label"
+    Toggle.Label.TextWrapped = true
+    Toggle.Label.BorderSizePixel = 0
+    Toggle.Label.TextXAlignment = Enum.TextXAlignment.Left
+    Toggle.Label.TextScaled = true
+    Toggle.Label.BackgroundTransparency = 1
+    Toggle.Label.Font = Enum.Font.SourceSans
+    Toggle.Label.TextColor3 = theme.Text
+    Toggle.Label.Size = UDim2.new(1, -34, 0, 18)
+    Toggle.Label.Text = Toggle.Text
+    Toggle.Label.Position = UDim2.new(0, 28, 0, 8)
+    Toggle.Label.Parent = Toggle.Frame
+
+    -- Toggle functionality
+    local function setToggle(state)
+        Toggle.State = state
         Toggle.Indicator.Visible = Toggle.State
-        Toggle.Indicator.BorderSizePixel = 0
-        Toggle.Indicator.BackgroundColor3 = theme.ToggleOn
-        Toggle.Indicator.Size = UDim2.new(0, 14, 0, 14)
-        Toggle.Indicator.Position = UDim2.new(0, 4, 0, 4)
-        Toggle.Indicator.Parent = Toggle.Button
-        
-        createCorner(Toggle.Indicator, 3)
-        
-        -- Toggle text
-        Toggle.Label = Instance.new("TextLabel")
-        Toggle.Label.Name = "Label"
-        Toggle.Label.TextWrapped = true
-        Toggle.Label.BorderSizePixel = 0
-        Toggle.Label.TextXAlignment = Enum.TextXAlignment.Left
-        Toggle.Label.TextScaled = true
-        Toggle.Label.BackgroundTransparency = 1
-        Toggle.Label.Font = Enum.Font.SourceSans
-        Toggle.Label.TextColor3 = theme.Text
-        Toggle.Label.Size = UDim2.new(1, -34, 0, 18)
-        Toggle.Label.Text = Toggle.Text
-        Toggle.Label.Position = UDim2.new(0, 28, 0, 8)
-        Toggle.Label.Parent = Toggle.Frame
-        
-        -- Toggle functionality
-        local function setToggle(state)
-            Toggle.State = state
-            Toggle.Indicator.Visible = Toggle.State
-            Toggle.Callback(Toggle.State)
+        Toggle.Callback(Toggle.State)
+    end
+
+    Toggle.Button.MouseButton1Click:Connect(function()
+        if not Toggle.Disabled then
+            setToggle(not Toggle.State)
         end
-        
-        Toggle.Button.MouseButton1Click:Connect(function()
-            if not Toggle.Disabled then
-                setToggle(not Toggle.State)
+    end)
+
+    -- Initial state
+    setToggle(Toggle.State)
+
+    -- Add KeyPicker method
+    function Toggle:AddKeyPicker(id, keyConfig)
+        local KeyPicker = {}
+        KeyPicker.ID = id
+        KeyPicker.Mode = keyConfig.Mode or "Toggle"
+        KeyPicker.Default = keyConfig.Default or "F"
+        KeyPicker.Text = keyConfig.Text or "Key"
+        KeyPicker.SyncToggleState = keyConfig.SyncToggleState or false
+        KeyPicker.Key = KeyPicker.Default
+
+        KeyPicker.Label = Instance.new("TextLabel")
+        KeyPicker.Label.Text = KeyPicker.Text .. ": " .. KeyPicker.Key
+        KeyPicker.Label.Size = UDim2.new(1, 0, 0, 20)
+        KeyPicker.Label.Position = UDim2.new(0, 40, 0, 0)
+        KeyPicker.Label.BackgroundTransparency = 1
+        KeyPicker.Label.Font = Enum.Font.SourceSans
+        KeyPicker.Label.TextColor3 = theme.Text
+        KeyPicker.Label.TextScaled = true
+        KeyPicker.Label.Parent = Toggle.Frame
+
+        -- Input detection
+        local uis = game:GetService("UserInputService")
+        uis.InputBegan:Connect(function(input, gpe)
+            if not gpe and input.UserInputType == Enum.UserInputType.Keyboard then
+                if input.KeyCode.Name == KeyPicker.Key then
+                    if KeyPicker.Mode == "Toggle" then
+                        Toggle.State = not Toggle.State
+                        setToggle(Toggle.State)
+                    end
+                end
             end
         end)
-        
-        -- Set initial state
-        setToggle(Toggle.State)
-        
-        Tab.Elements[id] = Toggle
-        return Toggle
+
+        return KeyPicker
     end
+
+    Tab.Elements[id] = Toggle
+    return Toggle
+end
     
     -- AddSlider
 function Tab:AddSlider(id, config)
@@ -765,147 +801,155 @@ function Tab:AddButton(id, config)
     return Button  
 end
 
-    -- AddDropdown
-    function Tab:AddDropdown(id, config)
-        local Dropdown = {}
-        Dropdown.ID = id
-        Dropdown.Text = config.Text or "Dropdown"
-        Dropdown.Value = config.Value or {}
-        Dropdown.Default = config.Default or {}
-        Dropdown.Mult = config.Mult or false
-        Dropdown.Callback = config.Callback or function() end
-        Dropdown.originalHeight = (config.Size and config.Size.Y.Offset) or 38
-        Dropdown.Frame = Instance.new("Frame")
-        Dropdown.Frame.Name = id
-        Dropdown.Frame.BackgroundTransparency = 1
-        Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
-        Dropdown.Frame.Parent = Tab.Content
+ -- AddDropdown
+function Tab:AddDropdown(id, config)
+    local Dropdown = {}
+    Dropdown.ID = id
+    Dropdown.Text = config.Text or "Dropdown"
+    Dropdown.Value = config.Value or {}
+    Dropdown.Default = config.Default or {}
+    Dropdown.Mult = config.Mult or false
+    Dropdown.Callback = config.Callback or function() end
+    Dropdown.originalHeight = (config.Size and config.Size.Y.Offset) or 38
 
-        Dropdown.Label = Instance.new("TextLabel")
-        Dropdown.Label.Name = id .. "_Label"
-        Dropdown.Label.Text = Dropdown.Text
-        Dropdown.Label.TextWrapped = true
-        Dropdown.Label.BorderSizePixel = 0
-        Dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
-        Dropdown.Label.TextScaled = true
-        Dropdown.Label.BackgroundTransparency = 1
-        Dropdown.Label.Font = Enum.Font.SourceSansSemibold
-        Dropdown.Label.TextColor3 = theme.Text
-        Dropdown.Label.Size = UDim2.new(1, -34, 0, 20)
-        Dropdown.Label.Position = UDim2.new(0, 0, 0, 0)
-        Dropdown.Label.Parent = Dropdown.Frame
+    -- Container frame do Dropdown
+    Dropdown.Frame = Instance.new("Frame")
+    Dropdown.Frame.Name = id
+    Dropdown.Frame.BackgroundTransparency = 1
+    Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
+    Dropdown.Frame.Parent = Tab.Content
 
-        Dropdown.Button = Instance.new("TextButton")
-        Dropdown.Button.Name = id .. "_Button"
-        Dropdown.Button.Text = "▼"
-        Dropdown.Button.Size = UDim2.new(0, 32, 0, 20)
-        Dropdown.Button.Position = UDim2.new(1, -32, 0, 0)
-        Dropdown.Button.BackgroundColor3 = theme.Accent
-        Dropdown.Button.TextColor3 = theme.Text
-        Dropdown.Button.Font = Enum.Font.SourceSansBold
-        Dropdown.Button.TextScaled = true
-        Dropdown.Button.BorderSizePixel = 0
-        Dropdown.Button.Parent = Dropdown.Frame
+    -- Label principal
+    Dropdown.Label = Instance.new("TextLabel")
+    Dropdown.Label.Name = id .. "_Label"
+    Dropdown.Label.Text = Dropdown.Text
+    Dropdown.Label.TextWrapped = true
+    Dropdown.Label.BorderSizePixel = 0
+    Dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
+    Dropdown.Label.TextScaled = true
+    Dropdown.Label.BackgroundTransparency = 1
+    Dropdown.Label.Font = Enum.Font.SourceSansSemibold
+    Dropdown.Label.TextColor3 = theme.Text
+    Dropdown.Label.Size = UDim2.new(1, -34, 0, 20)
+    Dropdown.Label.Position = UDim2.new(0, 0, 0, 0)
+    Dropdown.Label.Parent = Dropdown.Frame
 
-        createCorner(Dropdown.Button, 5)
-        createStroke(Dropdown.Button, theme.Outline, 1)
+    -- Botão para abrir/fechar o menu
+    Dropdown.Button = Instance.new("TextButton")
+    Dropdown.Button.Name = id .. "_Button"
+    Dropdown.Button.Text = "▼"
+    Dropdown.Button.Size = UDim2.new(0, 32, 0, 20)
+    Dropdown.Button.Position = UDim2.new(1, -32, 0, 0)
+    Dropdown.Button.BackgroundColor3 = theme.Accent
+    Dropdown.Button.TextColor3 = theme.Text
+    Dropdown.Button.Font = Enum.Font.SourceSansBold
+    Dropdown.Button.TextScaled = true
+    Dropdown.Button.BorderSizePixel = 0
+    Dropdown.Button.Parent = Dropdown.Frame
 
-        -- Dropdown List Frame (changed to ScrollingFrame for potential scrolling)
-        Dropdown.ListFrame = Instance.new("ScrollingFrame")
-        Dropdown.ListFrame.Name = id .. "_ListFrame"
-        Dropdown.ListFrame.Visible = false
-        Dropdown.ListFrame.BackgroundColor3 = theme.InnerBackground
-        Dropdown.ListFrame.Size = UDim2.new(1, 0, 0, 100) -- Initial size, will be adjusted
-        Dropdown.ListFrame.Position = UDim2.new(0, 0, 1, 2)
-        Dropdown.ListFrame.BorderSizePixel = 0
-        Dropdown.ListFrame.ScrollBarThickness = 4
-        Dropdown.ListFrame.ScrollBarImageColor3 = theme.Accent
-        Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-        Dropdown.ListFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-        Dropdown.ListFrame.Parent = Dropdown.Frame
+    createCorner(Dropdown.Button, 5)
+    createStroke(Dropdown.Button, theme.Outline, 1)
 
-        createCorner(Dropdown.ListFrame, 5)
-        createStroke(Dropdown.ListFrame, theme.Outline, 1)
-        createPadding(Dropdown.ListFrame, 4, 4, 4, 4)
+    -- Container do menu com Scroll
+    Dropdown.ListContainer = Instance.new("Frame")
+    Dropdown.ListContainer.Name = id .. "_ListContainer"
+    Dropdown.ListContainer.BackgroundTransparency = 1
+    Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, 0) -- ajustado dinamicamente
+    Dropdown.ListContainer.Position = UDim2.new(0, 0, 1, 2)
+    Dropdown.ListContainer.ClipsDescendants = true
+    Dropdown.ListContainer.Parent = Dropdown.Frame
 
-        Dropdown.ListLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 2)
-        Dropdown.ListLayout.Parent = Dropdown.ListFrame  -- Ensure parent is set correctly
+    Dropdown.ListFrame = Instance.new("ScrollingFrame")
+    Dropdown.ListFrame.Name = id .. "_ListFrame"
+    Dropdown.ListFrame.BackgroundColor3 = theme.InnerBackground
+    Dropdown.ListFrame.Size = UDim2.new(1, 0, 1, 0)
+    Dropdown.ListFrame.BorderSizePixel = 0
+    Dropdown.ListFrame.ScrollBarThickness = 6
+    Dropdown.ListFrame.ScrollBarImageColor3 = theme.Accent
+    Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Dropdown.ListFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+    Dropdown.ListFrame.Parent = Dropdown.ListContainer
 
-        Dropdown.Selected = {}
-        local defaultTable = type(Dropdown.Default) == "table" and Dropdown.Default or {Dropdown.Default}
-        for _, v in ipairs(defaultTable) do
-            if table.find(Dropdown.Value, v) then
-                Dropdown.Selected[v] = true
-            end
+    createCorner(Dropdown.ListFrame, 5)
+    createStroke(Dropdown.ListFrame, theme.Outline, 1)
+    createPadding(Dropdown.ListFrame, 4, 4, 4, 4)
+
+    Dropdown.ListLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 2)
+    Dropdown.ListLayout.Parent = Dropdown.ListFrame
+
+    -- Marcação de opções selecionadas
+    Dropdown.Selected = {}
+    local defaultTable = type(Dropdown.Default) == "table" and Dropdown.Default or {Dropdown.Default}
+    for _, v in ipairs(defaultTable) do
+        if table.find(Dropdown.Value, v) then
+            Dropdown.Selected[v] = true
         end
-
-        local function updateDropdown()
-            local selected = Dropdown.GetSelected()
-            local displayText = Dropdown.Mult and table.concat(selected, ", ") or (selected[1] or "")
-            Dropdown.Label.Text = Dropdown.Text .. (displayText ~= "" and ": " .. displayText or "")
-            Dropdown.Callback(selected)
-        end
-
-        function Dropdown.GetSelected()
-            local selected = {}
-            for value in pairs(Dropdown.Selected) do
-                table.insert(selected, value)
-            end
-            return selected
-        end
-
-        for _, value in ipairs(Dropdown.Value) do
-            local optionBtn = Instance.new("TextButton")
-            optionBtn.Name = "Option_" .. tostring(value)
-            optionBtn.Text = tostring(value)
-            optionBtn.Size = UDim2.new(1, 0, 0, 22)
-            optionBtn.BackgroundColor3 = theme.Outline
-            optionBtn.TextColor3 = theme.Text
-            optionBtn.Font = Enum.Font.SourceSans
-            optionBtn.TextScaled = true
-            optionBtn.BorderSizePixel = 0
-            optionBtn.Parent = Dropdown.ListFrame
-
-            createCorner(optionBtn, 5)
-            createStroke(optionBtn, theme.Accent, 1)
-
-            optionBtn.MouseButton1Click:Connect(function()
-                if Dropdown.Mult then
-                    Dropdown.Selected[value] = not Dropdown.Selected[value]
-                else
-                    Dropdown.Selected = {}
-                    Dropdown.Selected[value] = true
-                    -- Auto-close for single select
-                    Dropdown.ListFrame.Visible = false
-                    Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
-                end
-                updateDropdown()
-            end)
-        end
-
-        -- Toggle dropdown and expand/collapse
-        Dropdown.Button.MouseButton1Click:Connect(function()
-            Dropdown.ListFrame.Visible = not Dropdown.ListFrame.Visible
-            if Dropdown.ListFrame.Visible then
-                -- Calculate content height
-                local contentHeight = Dropdown.ListLayout.AbsoluteContentSize.Y + 8  -- Add padding top/bottom
-                Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
-                local maxHeight = 150  -- Maximum display height before scrolling
-                local displayHeight = math.min(contentHeight, maxHeight)
-                Dropdown.ListFrame.Size = UDim2.new(1, 0, 0, displayHeight)
-                -- Expand the frame height
-                Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight + displayHeight + 2)
-            else
-                -- Collapse
-                Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
-            end
-        end)
-
-        updateDropdown()
-
-        Tab.Elements[id] = Dropdown
-        return Dropdown
     end
+
+    local function updateDropdown()
+        local selected = Dropdown.GetSelected()
+        local displayText = Dropdown.Mult and table.concat(selected, ", ") or (selected[1] or "")
+        Dropdown.Label.Text = Dropdown.Text .. (displayText ~= "" and ": " .. displayText or "")
+        Dropdown.Callback(selected)
+    end
+
+    function Dropdown.GetSelected()
+        local selected = {}
+        for value in pairs(Dropdown.Selected) do
+            table.insert(selected, value)
+        end
+        return selected
+    end
+
+    -- Criar cada opção no menu
+    for _, value in ipairs(Dropdown.Value) do
+        local optionBtn = Instance.new("TextButton")
+        optionBtn.Name = "Option_" .. tostring(value)
+        optionBtn.Text = tostring(value)
+        optionBtn.Size = UDim2.new(1, 0, 0, 22)
+        optionBtn.BackgroundColor3 = theme.Outline
+        optionBtn.TextColor3 = theme.Text
+        optionBtn.Font = Enum.Font.SourceSans
+        optionBtn.TextScaled = true
+        optionBtn.BorderSizePixel = 0
+        optionBtn.Parent = Dropdown.ListFrame
+
+        createCorner(optionBtn, 5)
+        createStroke(optionBtn, theme.Accent, 1)
+
+        optionBtn.MouseButton1Click:Connect(function()
+            if Dropdown.Mult then
+                Dropdown.Selected[value] = not Dropdown.Selected[value]
+            else
+                Dropdown.Selected = {}
+                Dropdown.Selected[value] = true
+                Dropdown.ListContainer.Visible = false
+                Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, 0)
+            end
+            updateDropdown()
+        end)
+    end
+
+    -- Toggle do menu
+    Dropdown.Button.MouseButton1Click:Connect(function()
+        Dropdown.ListContainer.Visible = not Dropdown.ListContainer.Visible
+        if Dropdown.ListContainer.Visible then
+            -- Ajusta altura de acordo com o conteúdo
+            local contentHeight = Dropdown.ListLayout.AbsoluteContentSize.Y + 8
+            local maxHeight = 150
+            local displayHeight = math.min(contentHeight, maxHeight)
+            Dropdown.ListContainer.Size = UDim2.new(1, 0, 0, displayHeight)
+            Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+            Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight + displayHeight + 2)
+        else
+            Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
+        end
+    end)
+
+    updateDropdown()
+    Tab.Elements[id] = Dropdown
+    return Dropdown
+end
 
     self.Tabs[name] = Tab
     
