@@ -1,5 +1,5 @@
 -- UI Library for Roblox
---Kolt UI Library 1.0 b
+--Kolt UI Library 1.0
 
 local Library = {}
 local Windows = {}
@@ -229,7 +229,7 @@ function Window:CreateWindow()
         self.LockButton = Instance.new("TextButton")
         self.LockButton.Name = "LockButton"
         self.LockButton.Text = self.isLocked and "Unlock" or "Lock"
-        self.LockButton.Size = UDim2.new(0, 60, 0, 50)
+        self.LockButton.Size = UDim2.new(0, 80, 0, 30)
         self.LockButton.Position = UDim2.new(0, 10, 0.4, 0)
         self.LockButton.BackgroundColor3 = theme.Background
         self.LockButton.TextColor3 = theme.Text
@@ -249,7 +249,7 @@ function Window:CreateWindow()
         self.ToggleUIButton = Instance.new("TextButton")
         self.ToggleUIButton.Name = "ToggleUIButton"
         self.ToggleUIButton.Text = "Toggle UI"
-        self.ToggleUIButton.Size = UDim2.new(0, 60, 0, 50)
+        self.ToggleUIButton.Size = UDim2.new(0, 80, 0, 30)
         self.ToggleUIButton.Position = UDim2.new(0, 10, 0.5, 0)
         self.ToggleUIButton.BackgroundColor3 = theme.Background
         self.ToggleUIButton.TextColor3 = theme.Text
@@ -525,7 +525,7 @@ function Tab:AddSlider(id, config)
     Slider.DisplayLabel = Instance.new("TextLabel")
     Slider.DisplayLabel.TextWrapped = true
     Slider.DisplayLabel.BorderSizePixel = 0
-    Slider.DisplayLabel.TextXAlignment = Enum.TextXAlignment.Left
+    Slider.DisplayLabel.TextXAlignment = Enum.TextXAlignment.Center
     Slider.DisplayLabel.BackgroundTransparency = 1
     Slider.DisplayLabel.Font = Enum.Font.SourceSansBold
     Slider.DisplayLabel.TextColor3 = theme.Text
