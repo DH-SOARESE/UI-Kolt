@@ -1,5 +1,5 @@
 -- UI Library for Roblox
--- Kolt UI Library 1.1
+-- Kolt UI Library 1.0
 
 local Library = {}
 local Windows = {}
@@ -107,54 +107,45 @@ function Window:new(config)
     return self
 end
 
+
 function Window:CreateCustomCursor()
     if self.CustomCursor then return end
 
+    -- Cria a imagem do cursor
     self.CustomCursor = Instance.new("ImageLabel")
     self.CustomCursor.Name = "CustomCursor"
-    self.CustomCursor.Image = "rbxassetid://12230889708" -- sua seta
+    self.CustomCursor.Image = "rbxassetid://12230889708" -- ID da seta
     self.CustomCursor.Size = UDim2.new(0, 24, 0, 24)
-    self.CustomCursor.AnchorPoint = Vector2.new(0, 0)
+    self.CustomCursor.AnchorPoint = Vector2.new(0.5, 0.5) -- centraliza
     self.CustomCursor.BackgroundTransparency = 1
     self.CustomCursor.ZIndex = 1000
+    self.CustomCursor.Rotation = -20 -- tombada para a esquerda
     self.CustomCursor.Parent = self.ScreenGui
 
+    -- Desativa o cursor padrão
     UserInputService.MouseIconEnabled = false
 
-    local lastPosition = UserInputService:GetMouseLocation()
-    local targetRotation = 0
-    local currentRotation = 0
-
-    local function updateCursor()
+    -- Atualiza posição a cada frame
+    self.CursorConnection = RunService.RenderStepped:Connect(function()
         local mousePos = UserInputService:GetMouseLocation()
         self.CustomCursor.Position = UDim2.new(0, mousePos.X, 0, mousePos.Y)
-
-        -- Calcula o ângulo da seta baseado no movimento
-        local delta = mousePos - lastPosition
-        if delta.Magnitude > 0.5 then
-            targetRotation = math.deg(math.atan2(delta.Y, delta.X))
-        end
-
-        -- Suaviza a rotação com lerp
-        currentRotation = currentRotation + (targetRotation - currentRotation) * 0.3
-        self.CustomCursor.Rotation = currentRotation
-
-        lastPosition = mousePos
-    end
-
-    -- Atualiza a cada frame
-    self.CursorConnection = RunService.RenderStepped:Connect(updateCursor)
+    end)
 end
 
 function Window:DestroyCustomCursor()
+    -- Remove cursor personalizado
     if self.CustomCursor then
         self.CustomCursor:Destroy()
         self.CustomCursor = nil
     end
+
+    -- Desconecta atualização
     if self.CursorConnection then
         self.CursorConnection:Disconnect()
         self.CursorConnection = nil
     end
+
+    -- Reativa cursor padrão
     UserInputService.MouseIconEnabled = true
 end
 
