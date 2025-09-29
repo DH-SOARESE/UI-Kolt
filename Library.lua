@@ -1,8 +1,9 @@
 -- UI Library for Roblox
---Kolt UI Library 1.0
+-- Kolt UI Library 1.1
 
 local Library = {}
 local Windows = {}
+local DPI_SCALE = 1.0 -- Novo: Variável de escala de DPI global
 
 -- Services
 local function gethui()
@@ -15,6 +16,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
 -- Detect if device is mobile
+-- Variável 'isMobile' já está definida, mas a API exige que ela seja acessível pela Library
 local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 
 -- Screen size detection for responsive design
@@ -34,9 +36,27 @@ local theme = {
 }
 
 -- Utility Functions
+-- Função para aplicar a escala DPI ao UDim
+local function applyDPIScale(value)
+    if value.Scale > 0 then
+        return UDim.new(value.Scale * DPI_SCALE, value.Offset)
+    else
+        return UDim.new(value.Scale, math.floor(value.Offset * DPI_SCALE))
+    end
+end
+
+-- Função para aplicar a escala DPI ao UDim2
+local function applyDPIScale2(udim2)
+    return UDim2.new(
+        applyDPIScale(udim2.X),
+        applyDPIScale(udim2.Y)
+    )
+end
+
 local function createCorner(parent, radius)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or 6)
+    -- Aplica DPI à CornerRadius
+    corner.CornerRadius = applyDPIScale(UDim.new(0, radius or 6))
     corner.Parent = parent
     return corner
 end
@@ -44,7 +64,8 @@ end
 local function createStroke(parent, color, thickness)
     local stroke = Instance.new("UIStroke")
     stroke.Color = color or theme.Outline
-    stroke.Thickness = thickness or 1
+    -- Aplica DPI à espessura
+    stroke.Thickness = math.floor((thickness or 1) * DPI_SCALE)
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = parent
     return stroke
@@ -52,10 +73,11 @@ end
 
 local function createPadding(parent, left, right, top, bottom)
     local padding = Instance.new("UIPadding")
-    padding.PaddingLeft = UDim.new(0, left or 0)
-    padding.PaddingRight = UDim.new(0, right or 0)
-    padding.PaddingTop = UDim.new(0, top or 0)
-    padding.PaddingBottom = UDim.new(0, bottom or 0)
+    -- Aplica DPI ao Padding
+    padding.PaddingLeft = applyDPIScale(UDim.new(0, left or 0))
+    padding.PaddingRight = applyDPIScale(UDim.new(0, right or 0))
+    padding.PaddingTop = applyDPIScale(UDim.new(0, top or 0))
+    padding.PaddingBottom = applyDPIScale(UDim.new(0, bottom or 0))
     padding.Parent = parent
     return padding
 end
@@ -63,7 +85,8 @@ end
 local function createListLayout(parent, direction, padding, sortOrder)
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = direction or Enum.FillDirection.Vertical
-    layout.Padding = UDim.new(0, padding or 4)
+    -- Aplica DPI ao Padding
+    layout.Padding = applyDPIScale(UDim.new(0, padding or 4))
     layout.SortOrder = sortOrder or Enum.SortOrder.LayoutOrder
     layout.Parent = parent
     return layout
@@ -97,14 +120,15 @@ function Window:CreateWindow()
     self.ScreenGui.DisplayOrder = 100
     self.ScreenGui.Parent = gethui()
     
-    -- Calculate menu size based on screen size
+    -- Calculate menu size based on screen size (Com DPI)
     local menuSize, menuPosition
     if isMobileScreen then
-        menuSize = UDim2.new(0.9, 0, 0.85, 0) -- 90% largura, 85% altura
-        menuPosition = UDim2.new(0.05, 0, 0.075, 0) -- centralizado
+        menuSize = UDim2.new(0.9, 0, 0.85, 0)
+        menuPosition = UDim2.new(0.05, 0, 0.075, 0)
     else
-        menuSize = UDim2.new(0, 536, 0, 296)
-        menuPosition = self.Center and UDim2.new(0.5, -268, 0.5, -148) or UDim2.new(0, 100, 0, 100)
+        -- Aplica DPI aos offsets
+        menuSize = applyDPIScale2(UDim2.new(0, 536, 0, 296))
+        menuPosition = self.Center and applyDPIScale2(UDim2.new(0.5, -268, 0.5, -148)) or applyDPIScale2(UDim2.new(0, 100, 0, 100))
     end
     
     -- Main Menu Frame
@@ -129,9 +153,10 @@ function Window:CreateWindow()
     self.TitleLabel.Name = "Title"
     self.TitleLabel.TextWrapped = true
     self.TitleLabel.BorderSizePixel = 0
-    self.TitleLabel.TextSize = 15
+    -- Aplica DPI ao TextSize
+    self.TitleLabel.TextSize = math.floor(15 * DPI_SCALE)
     self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    self.TitleLabel.TextScaled = true
+    self.TitleLabel.TextScaled = false -- Alterado para 'false' para usar TextSize com DPI
     self.TitleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     self.TitleLabel.Font = Enum.Font.SourceSansBold
     self.TitleLabel.TextColor3 = theme.Text
@@ -140,11 +165,11 @@ function Window:CreateWindow()
     self.TitleLabel.Parent = self.MainFrame
     
     if isMobileScreen then
-        self.TitleLabel.Size = UDim2.new(1, -12, 0, 26)
-        self.TitleLabel.Position = UDim2.new(0, 6, 0, 2)
+        self.TitleLabel.Size = applyDPIScale2(UDim2.new(1, -12, 0, 26))
+        self.TitleLabel.Position = applyDPIScale2(UDim2.new(0, 6, 0, 2))
     else
-        self.TitleLabel.Size = UDim2.new(0, 520, 0, 22)
-        self.TitleLabel.Position = UDim2.new(0, 6, 0, 2)
+        self.TitleLabel.Size = applyDPIScale2(UDim2.new(0, 520, 0, 22))
+        self.TitleLabel.Position = applyDPIScale2(UDim2.new(0, 6, 0, 2))
     end
     
     -- Inner Background
@@ -155,11 +180,11 @@ function Window:CreateWindow()
     self.InnerBackground.Parent = self.MainFrame
     
     if isMobileScreen then
-        self.InnerBackground.Size = UDim2.new(1, -8, 1, -36)
-        self.InnerBackground.Position = UDim2.new(0, 4, 0, 32)
+        self.InnerBackground.Size = applyDPIScale2(UDim2.new(1, -8, 1, -36))
+        self.InnerBackground.Position = applyDPIScale2(UDim2.new(0, 4, 0, 32))
     else
-        self.InnerBackground.Size = UDim2.new(0, 528, 0, 264)
-        self.InnerBackground.Position = UDim2.new(0, 4, 0, 28)
+        self.InnerBackground.Size = applyDPIScale2(UDim2.new(0, 528, 0, 264))
+        self.InnerBackground.Position = applyDPIScale2(UDim2.new(0, 4, 0, 28))
     end
     
     createCorner(self.InnerBackground, 4)
@@ -172,11 +197,11 @@ function Window:CreateWindow()
     self.TabsFrame.Parent = self.InnerBackground
     
     if isMobileScreen then
-        self.TabsFrame.Size = UDim2.new(0, 148, 1, -4)
-        self.TabsFrame.Position = UDim2.new(0, 2, 0, 2)
+        self.TabsFrame.Size = applyDPIScale2(UDim2.new(0, 148, 1, -4))
+        self.TabsFrame.Position = applyDPIScale2(UDim2.new(0, 2, 0, 2))
     else
-        self.TabsFrame.Size = UDim2.new(0, 148, 0, 260)
-        self.TabsFrame.Position = UDim2.new(0, 2, 0, 2)
+        self.TabsFrame.Size = applyDPIScale2(UDim2.new(0, 148, 0, 260))
+        self.TabsFrame.Position = applyDPIScale2(UDim2.new(0, 2, 0, 2))
     end
     
     createCorner(self.TabsFrame, 6)
@@ -189,9 +214,10 @@ function Window:CreateWindow()
     self.TabsScroll.BorderSizePixel = 0
     self.TabsScroll.BackgroundTransparency = 1
     self.TabsScroll.ScrollBarImageTransparency = 1
-    self.TabsScroll.Size = UDim2.new(1, -8, 1, -8)
-    self.TabsScroll.Position = UDim2.new(0, 4, 0, 4)
-    self.TabsScroll.ScrollBarThickness = 4
+    self.TabsScroll.Size = applyDPIScale2(UDim2.new(1, -8, 1, -8))
+    self.TabsScroll.Position = applyDPIScale2(UDim2.new(0, 4, 0, 4))
+    -- Aplica DPI ao ScrollBarThickness
+    self.TabsScroll.ScrollBarThickness = math.floor(4 * DPI_SCALE)
     self.TabsScroll.ScrollBarImageColor3 = theme.Accent
     self.TabsScroll.Parent = self.TabsFrame
     
@@ -208,11 +234,11 @@ function Window:CreateWindow()
     self.ContentFrame.Parent = self.InnerBackground
     
     if isMobileScreen then
-        self.ContentFrame.Size = UDim2.new(1, -160, 1, -4)
-        self.ContentFrame.Position = UDim2.new(0, 156, 0, 2)
+        self.ContentFrame.Size = applyDPIScale2(UDim2.new(1, -160, 1, -4))
+        self.ContentFrame.Position = applyDPIScale2(UDim2.new(0, 156, 0, 2))
     else
-        self.ContentFrame.Size = UDim2.new(0, 376, 0, 260)
-        self.ContentFrame.Position = UDim2.new(0, 150, 0, 2)
+        self.ContentFrame.Size = applyDPIScale2(UDim2.new(0, 376, 0, 260))
+        self.ContentFrame.Position = applyDPIScale2(UDim2.new(0, 150, 0, 2))
     end
     
     createCorner(self.ContentFrame, 4)
@@ -220,7 +246,8 @@ function Window:CreateWindow()
     
     -- Update canvas size
     self.TabsLayout.Changed:Connect(function()
-        self.TabsScroll.CanvasSize = UDim2.new(0, 0, 0, self.TabsLayout.AbsoluteContentSize.Y + 8)
+        -- Aplica DPI à constante 8
+        self.TabsScroll.CanvasSize = UDim2.new(0, 0, 0, self.TabsLayout.AbsoluteContentSize.Y + math.floor(8 * DPI_SCALE))
     end)
     
     -- Add mobile buttons or PC hotkey
@@ -229,12 +256,14 @@ function Window:CreateWindow()
         self.LockButton = Instance.new("TextButton")
         self.LockButton.Name = "LockButton"
         self.LockButton.Text = self.isLocked and "Unlock" or "Lock"
-        self.LockButton.Size = UDim2.new(0, 80, 0, 30)
-        self.LockButton.Position = UDim2.new(0, 10, 0.4, 0)
+        -- Aplica DPI
+        self.LockButton.Size = applyDPIScale2(UDim2.new(0, 80, 0, 30))
+        self.LockButton.Position = applyDPIScale2(UDim2.new(0, 10, 0.5, 0))
         self.LockButton.BackgroundColor3 = theme.Background
         self.LockButton.TextColor3 = theme.Text
         self.LockButton.Font = Enum.Font.SourceSansBold
-        self.LockButton.TextSize = 14
+        -- Aplica DPI
+        self.LockButton.TextSize = math.floor(14 * DPI_SCALE)
         self.LockButton.Parent = self.ScreenGui
         self.LockButton.ZIndex = 99
         createCorner(self.LockButton, 4)
@@ -249,12 +278,14 @@ function Window:CreateWindow()
         self.ToggleUIButton = Instance.new("TextButton")
         self.ToggleUIButton.Name = "ToggleUIButton"
         self.ToggleUIButton.Text = "Toggle UI"
-        self.ToggleUIButton.Size = UDim2.new(0, 80, 0, 30)
-        self.ToggleUIButton.Position = UDim2.new(0, 10, 0.5, 0)
+        -- Aplica DPI
+        self.ToggleUIButton.Size = applyDPIScale2(UDim2.new(0, 80, 0, 30))
+        self.ToggleUIButton.Position = applyDPIScale2(UDim2.new(0, 10, 0.5, -40)) -- Ajustada a posição para não sobrepor o LockButton
         self.ToggleUIButton.BackgroundColor3 = theme.Background
         self.ToggleUIButton.TextColor3 = theme.Text
         self.ToggleUIButton.Font = Enum.Font.SourceSansBold
-        self.ToggleUIButton.TextSize = 14
+        -- Aplica DPI
+        self.ToggleUIButton.TextSize = math.floor(14 * DPI_SCALE)
         self.ToggleUIButton.Parent = self.ScreenGui
         createCorner(self.ToggleUIButton, 4)
         createStroke(self.ToggleUIButton, theme.Accent)
@@ -317,13 +348,15 @@ function Window:AddTab(name)
     Tab.Button.Name = name
     Tab.Button.TextWrapped = true
     Tab.Button.BorderSizePixel = 0
-    Tab.Button.TextSize = 16
+    -- Aplica DPI
+    Tab.Button.TextSize = math.floor(16 * DPI_SCALE)
     Tab.Button.AutoButtonColor = false
-    Tab.Button.TextScaled = true
+    Tab.Button.TextScaled = false -- Alterado para 'false'
     Tab.Button.TextColor3 = theme.Text
     Tab.Button.BackgroundColor3 = theme.InnerBackground
     Tab.Button.Font = Enum.Font.SourceSansSemibold
-    Tab.Button.Size = UDim2.new(1, 0, 0, 25)
+    -- Aplica DPI
+    Tab.Button.Size = applyDPIScale2(UDim2.new(1, 0, 0, 25))
     Tab.Button.Text = name
     Tab.Button.Parent = self.TabsScroll
     
@@ -338,9 +371,11 @@ function Window:AddTab(name)
     Tab.Content.BorderSizePixel = 0
     Tab.Content.BackgroundTransparency = 1
     Tab.Content.ScrollBarImageTransparency = 1
-    Tab.Content.Size = UDim2.new(1, -16, 1, -8)
-    Tab.Content.Position = UDim2.new(0, 8, 0, 4)
-    Tab.Content.ScrollBarThickness = 4
+    -- Aplica DPI
+    Tab.Content.Size = applyDPIScale2(UDim2.new(1, -16, 1, -8))
+    Tab.Content.Position = applyDPIScale2(UDim2.new(0, 8, 0, 4))
+    -- Aplica DPI
+    Tab.Content.ScrollBarThickness = math.floor(4 * DPI_SCALE)
     Tab.Content.ScrollBarImageColor3 = theme.Accent
     Tab.Content.Visible = false
     Tab.Content.Parent = self.ContentFrame
@@ -352,7 +387,8 @@ function Window:AddTab(name)
     
     -- Update canvas size
     Tab.ContentLayout.Changed:Connect(function()
-        Tab.Content.CanvasSize = UDim2.new(0, 0, 0, Tab.ContentLayout.AbsoluteContentSize.Y + 16)
+        -- Aplica DPI à constante 16
+        Tab.Content.CanvasSize = UDim2.new(0, 0, 0, Tab.ContentLayout.AbsoluteContentSize.Y + math.floor(16 * DPI_SCALE))
     end)
     
     -- Tab selection
@@ -375,7 +411,8 @@ function Window:AddTab(name)
         Toggle.Frame.Name = id
         Toggle.Frame.BorderSizePixel = 0
         Toggle.Frame.BackgroundTransparency = 1
-        Toggle.Frame.Size = UDim2.new(1, 0, 0, 34)
+        -- Aplica DPI
+        Toggle.Frame.Size = applyDPIScale2(UDim2.new(1, 0, 0, 34))
         Toggle.Frame.Parent = Tab.Content
         
         -- Toggle button
@@ -383,8 +420,9 @@ function Window:AddTab(name)
         Toggle.Button.BorderSizePixel = 0
         Toggle.Button.AutoButtonColor = false
         Toggle.Button.BackgroundColor3 = theme.Outline
-        Toggle.Button.Size = UDim2.new(0, 22, 0, 22)
-        Toggle.Button.Position = UDim2.new(0, 0, 0, 6)
+        -- Aplica DPI
+        Toggle.Button.Size = applyDPIScale2(UDim2.new(0, 22, 0, 22))
+        Toggle.Button.Position = applyDPIScale2(UDim2.new(0, 0, 0, 6))
         Toggle.Button.Text = ""
         Toggle.Button.Parent = Toggle.Frame
         
@@ -397,8 +435,9 @@ function Window:AddTab(name)
         Toggle.Indicator.Visible = Toggle.State
         Toggle.Indicator.BorderSizePixel = 0
         Toggle.Indicator.BackgroundColor3 = theme.ToggleOn
-        Toggle.Indicator.Size = UDim2.new(0, 14, 0, 14)
-        Toggle.Indicator.Position = UDim2.new(0, 4, 0, 4)
+        -- Aplica DPI
+        Toggle.Indicator.Size = applyDPIScale2(UDim2.new(0, 14, 0, 14))
+        Toggle.Indicator.Position = applyDPIScale2(UDim2.new(0, 4, 0, 4))
         Toggle.Indicator.Parent = Toggle.Button
         
         createCorner(Toggle.Indicator, 3)
@@ -413,9 +452,10 @@ function Window:AddTab(name)
         Toggle.Label.BackgroundTransparency = 1
         Toggle.Label.Font = Enum.Font.SourceSans
         Toggle.Label.TextColor3 = theme.Text
-        Toggle.Label.Size = UDim2.new(1, -34, 0, 18)
+        -- Aplica DPI
+        Toggle.Label.Size = applyDPIScale2(UDim2.new(1, -34, 0, 18))
         Toggle.Label.Text = Toggle.Text
-        Toggle.Label.Position = UDim2.new(0, 28, 0, 8)
+        Toggle.Label.Position = applyDPIScale2(UDim2.new(0, 28, 0, 8))
         Toggle.Label.Parent = Toggle.Frame
         
         -- Toggle functionality
@@ -457,15 +497,17 @@ function Tab:AddSlider(id, config)
     Slider.Frame.Name = id
     Slider.Frame.BorderSizePixel = 0
     Slider.Frame.BackgroundTransparency = 1
-    Slider.Frame.Size = UDim2.new(1, 0, 0, Slider.Compact and 34 or 52)
+    -- Aplica DPI
+    Slider.Frame.Size = applyDPIScale2(UDim2.new(1, 0, 0, Slider.Compact and 34 or 52))
     Slider.Frame.Parent = Tab.Content
 
     -- Fundo
     Slider.Background = Instance.new("Frame")
     Slider.Background.BorderSizePixel = 0
     Slider.Background.BackgroundColor3 = theme.Outline
-    Slider.Background.Size = UDim2.new(1, -12, 0, 26)
-    Slider.Background.Position = UDim2.new(0, 6, 0, Slider.Compact and 4 or 22)
+    -- Aplica DPI
+    Slider.Background.Size = applyDPIScale2(UDim2.new(1, -12, 0, 26))
+    Slider.Background.Position = applyDPIScale2(UDim2.new(0, 6, 0, Slider.Compact and 4 or 22))
     Slider.Background.Parent = Slider.Frame
 
     createCorner(Slider.Background, 5)
@@ -476,8 +518,9 @@ function Tab:AddSlider(id, config)
     Slider.Progress.Name = "Progress"
     Slider.Progress.BorderSizePixel = 0
     Slider.Progress.BackgroundColor3 = theme.InnerBackground
-    Slider.Progress.Size = UDim2.new(1, -8, 0, 18)
-    Slider.Progress.Position = UDim2.new(0, 4, 0, 4)
+    -- Aplica DPI
+    Slider.Progress.Size = applyDPIScale2(UDim2.new(1, -8, 0, 18))
+    Slider.Progress.Position = applyDPIScale2(UDim2.new(0, 4, 0, 4))
     Slider.Progress.Parent = Slider.Background
 
     createCorner(Slider.Progress, 5)
@@ -488,7 +531,8 @@ function Tab:AddSlider(id, config)
     Slider.ProgressBar.Name = "ProgressBar"
     Slider.ProgressBar.BorderSizePixel = 0
     Slider.ProgressBar.BackgroundColor3 = theme.SliderProgress
-    Slider.ProgressBar.Size = UDim2.new(0, 10, 0, 18)
+    -- Aplica DPI
+    Slider.ProgressBar.Size = applyDPIScale2(UDim2.new(0, 10, 0, 18))
     Slider.ProgressBar.Parent = Slider.Progress
 
     createCorner(Slider.ProgressBar, 5)
@@ -502,9 +546,10 @@ function Tab:AddSlider(id, config)
     Slider.NameLabel.BackgroundTransparency = 1
     Slider.NameLabel.Font = Enum.Font.SourceSans
     Slider.NameLabel.TextColor3 = theme.Text
-    Slider.NameLabel.Size = UDim2.new(1, -12, 0, 14)
+    -- Aplica DPI
+    Slider.NameLabel.Size = applyDPIScale2(UDim2.new(1, -12, 0, 14))
     Slider.NameLabel.Text = Slider.Text
-    Slider.NameLabel.Position = UDim2.new(0, 6, 0, 4)
+    Slider.NameLabel.Position = applyDPIScale2(UDim2.new(0, 6, 0, 4))
     Slider.NameLabel.Visible = not Slider.Compact
     Slider.NameLabel.Parent = Slider.Frame
 
@@ -529,8 +574,9 @@ function Tab:AddSlider(id, config)
     Slider.DisplayLabel.BackgroundTransparency = 1
     Slider.DisplayLabel.Font = Enum.Font.SourceSansBold
     Slider.DisplayLabel.TextColor3 = theme.Text
-    Slider.DisplayLabel.Size = UDim2.new(1, -12, 0, 20)
-    Slider.DisplayLabel.Position = UDim2.new(0, 6, 0, 6)
+    -- Aplica DPI
+    Slider.DisplayLabel.Size = applyDPIScale2(UDim2.new(1, -12, 0, 20))
+    Slider.DisplayLabel.Position = applyDPIScale2(UDim2.new(0, 6, 0, 6))
     Slider.DisplayLabel.Visible = Slider.Compact
     Slider.DisplayLabel.Parent = Slider.Frame
 
@@ -538,7 +584,8 @@ function Tab:AddSlider(id, config)
     local function updateSlider(value)
         Slider.Value = math.clamp(value, Slider.Min, Slider.Max)
         local ratio = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min)
-        Slider.ProgressBar.Size = UDim2.new(ratio, 0, 0, 18)
+        -- Aplica DPI
+        Slider.ProgressBar.Size = applyDPIScale2(UDim2.new(ratio, 0, 0, 18))
 
         local valueText = tostring(Slider.Value) .. Slider.Suffix
         if not Slider.HideMax then
@@ -597,7 +644,8 @@ end
         local Label = {}
         Label.ID = id
         Label.Text = config.Text or "Label"
-        Label.Size = config.Size or UDim2.new(1, 0, 0, 22)
+        -- Aplica DPI
+        Label.Size = applyDPIScale2(config.Size or UDim2.new(1, 0, 0, 22))
 
         Label.Frame = Instance.new("Frame")
         Label.Frame.Name = id
@@ -625,7 +673,8 @@ end
     function Tab:AddDivider(id, config)
         local Divider = {}
         Divider.ID = id
-        Divider.Size = config.Size or UDim2.new(1, 0, 0, 6)
+        -- Aplica DPI
+        Divider.Size = applyDPIScale2(config.Size or UDim2.new(1, 0, 0, 6))
 
         Divider.Frame = Instance.new("Frame")
         Divider.Frame.Name = id
@@ -646,7 +695,8 @@ end
         Button.ID = id
         Button.Text = config.Text or "Button"
         Button.Callback = config.Callback or function() end
-        Button.Size = config.Size or UDim2.new(1, 0, 0, 32)
+        -- Aplica DPI
+        Button.Size = applyDPIScale2(config.Size or UDim2.new(1, 0, 0, 32))
 
         Button.Frame = Instance.new("Frame")
         Button.Frame.Name = id
@@ -685,7 +735,8 @@ end
         Dropdown.Default = config.Default or {}
         Dropdown.Mult = config.Mult or false
         Dropdown.Callback = config.Callback or function() end
-        Dropdown.Size = config.Size or UDim2.new(1, 0, 0, 38)
+        -- Aplica DPI
+        Dropdown.Size = applyDPIScale2(config.Size or UDim2.new(1, 0, 0, 38))
 
         Dropdown.Frame = Instance.new("Frame")
         Dropdown.Frame.Name = id
@@ -703,15 +754,17 @@ end
         Dropdown.Label.BackgroundTransparency = 1
         Dropdown.Label.Font = Enum.Font.SourceSansSemibold
         Dropdown.Label.TextColor3 = theme.Text
-        Dropdown.Label.Size = UDim2.new(1, -34, 0, 20)
-        Dropdown.Label.Position = UDim2.new(0, 0, 0, 0)
+        -- Aplica DPI
+        Dropdown.Label.Size = applyDPIScale2(UDim2.new(1, -34, 0, 20))
+        Dropdown.Label.Position = applyDPIScale2(UDim2.new(0, 0, 0, 0))
         Dropdown.Label.Parent = Dropdown.Frame
 
         Dropdown.Button = Instance.new("TextButton")
         Dropdown.Button.Name = id .. "_Button"
         Dropdown.Button.Text = "▼"
-        Dropdown.Button.Size = UDim2.new(0, 32, 0, 20)
-        Dropdown.Button.Position = UDim2.new(1, -32, 0, 0)
+        -- Aplica DPI
+        Dropdown.Button.Size = applyDPIScale2(UDim2.new(0, 32, 0, 20))
+        Dropdown.Button.Position = applyDPIScale2(UDim2.new(1, -32, 0, 0))
         Dropdown.Button.BackgroundColor3 = theme.Accent
         Dropdown.Button.TextColor3 = theme.Text
         Dropdown.Button.Font = Enum.Font.SourceSansBold
@@ -727,8 +780,9 @@ end
         Dropdown.ListFrame.Name = id .. "_ListFrame"
         Dropdown.ListFrame.Visible = false
         Dropdown.ListFrame.BackgroundColor3 = theme.InnerBackground
-        Dropdown.ListFrame.Size = UDim2.new(1, 0, 0, 100)
-        Dropdown.ListFrame.Position = UDim2.new(0, 0, 1, 2)
+        -- Aplica DPI
+        Dropdown.ListFrame.Size = applyDPIScale2(UDim2.new(1, 0, 0, 100))
+        Dropdown.ListFrame.Position = applyDPIScale2(UDim2.new(0, 0, 1, 2))
         Dropdown.ListFrame.BorderSizePixel = 0
         Dropdown.ListFrame.Parent = Dropdown.Frame
 
@@ -761,7 +815,8 @@ end
             local optionBtn = Instance.new("TextButton")
             optionBtn.Name = "Option_" .. tostring(value)
             optionBtn.Text = tostring(value)
-            optionBtn.Size = UDim2.new(1, 0, 0, 22)
+            -- Aplica DPI
+            optionBtn.Size = applyDPIScale2(UDim2.new(1, 0, 0, 22))
             optionBtn.BackgroundColor3 = theme.Outline
             optionBtn.TextColor3 = theme.Text
             optionBtn.Font = Enum.Font.SourceSans
@@ -822,14 +877,36 @@ function Window:SelectTab(tab)
     self.CurrentTab = tab
 end
 
--- Library Functions
-function Library:CreateWindow(config)
-    local window = Window:new(config)
-    Windows[#Windows + 1] = window
-    return window
-end
+--- NOVAS FUNÇÕES DA API ---
 
--- Return the library
-return function()
-    return Library
+## Funções da Library
+
+### Library:Unload()
+Esta função limpa todos os elementos da interface criados pela biblioteca.
+
+```lua
+function Library:Unload()
+    for _, window in ipairs(Windows) do
+        if window.ScreenGui and window.ScreenGui.Parent then
+            -- Destrói o ScreenGui, que leva consigo todos os elementos filhos
+            window.ScreenGui:Destroy()
+        end
+        -- Remove os botões extra se existirem (ex: mobile)
+        if isMobile and window.LockButton and window.LockButton.Parent then
+            window.LockButton:Destroy()
+        end
+        if isMobile and window.ToggleUIButton and window.ToggleUIButton.Parent then
+            window.ToggleUIButton:Destroy()
+        end
+    end
+    -- Limpa a tabela de janelas para garantir que não haja referências perdidas
+    Windows = {}
+    
+    -- Restaura a visibilidade do mouse padrão do Roblox
+    if Players.LocalPlayer then
+        Players.LocalPlayer.PlayerGui.MouseLockCursorEnabled = false
+        UserInputService.MouseIconEnabled = true
+    end
+
+    print("Kolt UI Library Unloaded.")
 end
