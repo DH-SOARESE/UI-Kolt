@@ -1,5 +1,5 @@
 -- UI Library for Roblox
--- Kolt UI Library 1.0
+-- Kolt UI Library 1.1
 
 local Library = {}
 local Windows = {}
@@ -732,12 +732,11 @@ end
         Dropdown.Default = config.Default or {}
         Dropdown.Mult = config.Mult or false
         Dropdown.Callback = config.Callback or function() end
-        Dropdown.Size = config.Size or UDim2.new(1, 0, 0, 38)
-
+        Dropdown.originalHeight = (config.Size and config.Size.Y.Offset) or 38
         Dropdown.Frame = Instance.new("Frame")
         Dropdown.Frame.Name = id
         Dropdown.Frame.BackgroundTransparency = 1
-        Dropdown.Frame.Size = Dropdown.Size
+        Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
         Dropdown.Frame.Parent = Tab.Content
 
         Dropdown.Label = Instance.new("TextLabel")
@@ -769,20 +768,26 @@ end
         createCorner(Dropdown.Button, 5)
         createStroke(Dropdown.Button, theme.Outline, 1)
 
-        -- Dropdown List Frame
-        Dropdown.ListFrame = Instance.new("Frame")
+        -- Dropdown List Frame (changed to ScrollingFrame for potential scrolling)
+        Dropdown.ListFrame = Instance.new("ScrollingFrame")
         Dropdown.ListFrame.Name = id .. "_ListFrame"
         Dropdown.ListFrame.Visible = false
         Dropdown.ListFrame.BackgroundColor3 = theme.InnerBackground
-        Dropdown.ListFrame.Size = UDim2.new(1, 0, 0, 100)
+        Dropdown.ListFrame.Size = UDim2.new(1, 0, 0, 100) -- Initial size, will be adjusted
         Dropdown.ListFrame.Position = UDim2.new(0, 0, 1, 2)
         Dropdown.ListFrame.BorderSizePixel = 0
+        Dropdown.ListFrame.ScrollBarThickness = 4
+        Dropdown.ListFrame.ScrollBarImageColor3 = theme.Accent
+        Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        Dropdown.ListFrame.ScrollingDirection = Enum.ScrollingDirection.Y
         Dropdown.ListFrame.Parent = Dropdown.Frame
 
         createCorner(Dropdown.ListFrame, 5)
         createStroke(Dropdown.ListFrame, theme.Outline, 1)
+        createPadding(Dropdown.ListFrame, 4, 4, 4, 4)
 
         Dropdown.ListLayout = createListLayout(Dropdown.ListFrame, Enum.FillDirection.Vertical, 2)
+        Dropdown.ListLayout.Parent = Dropdown.ListFrame  -- Ensure parent is set correctly
 
         Dropdown.Selected = {}
         local defaultTable = type(Dropdown.Default) == "table" and Dropdown.Default or {Dropdown.Default}
@@ -795,7 +800,7 @@ end
         local function updateDropdown()
             local selected = Dropdown.GetSelected()
             local displayText = Dropdown.Mult and table.concat(selected, ", ") or (selected[1] or "")
-            Dropdown.Label.Text = Dropdown.Text .. ": " .. displayText
+            Dropdown.Label.Text = Dropdown.Text .. (displayText ~= "" and ": " .. displayText or "")
             Dropdown.Callback(selected)
         end
 
@@ -828,14 +833,30 @@ end
                 else
                     Dropdown.Selected = {}
                     Dropdown.Selected[value] = true
+                    -- Auto-close for single select
                     Dropdown.ListFrame.Visible = false
+                    Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
                 end
                 updateDropdown()
             end)
         end
 
+        -- Toggle dropdown and expand/collapse
         Dropdown.Button.MouseButton1Click:Connect(function()
             Dropdown.ListFrame.Visible = not Dropdown.ListFrame.Visible
+            if Dropdown.ListFrame.Visible then
+                -- Calculate content height
+                local contentHeight = Dropdown.ListLayout.AbsoluteContentSize.Y + 8  -- Add padding top/bottom
+                Dropdown.ListFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+                local maxHeight = 150  -- Maximum display height before scrolling
+                local displayHeight = math.min(contentHeight, maxHeight)
+                Dropdown.ListFrame.Size = UDim2.new(1, 0, 0, displayHeight)
+                -- Expand the frame height
+                Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight + displayHeight + 2)
+            else
+                -- Collapse
+                Dropdown.Frame.Size = UDim2.new(1, 0, 0, Dropdown.originalHeight)
+            end
         end)
 
         updateDropdown()
